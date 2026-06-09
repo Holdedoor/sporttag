@@ -390,19 +390,31 @@
 
     <div class="card">
       <div class="card-title"><span class="dot"></span>Export</div>
+
+      <div style="font-size:12px;font-weight:600;color:var(--text-3);text-transform:uppercase;letter-spacing:0.05em;margin-bottom:8px;">Gesamtauswertung</div>
       <div class="export-row">
         <div>
-          <div class="export-label">Rangliste exportieren</div>
-          <div class="export-sub">Alle Ergebnisse als Excel-Datei</div>
+          <div class="export-label">Rangliste (alle Klassen)</div>
+          <div class="export-sub">Rangliste + Rohdaten als Excel</div>
         </div>
         <button class="btn btn-primary" onclick="exportExcel()">📥 Excel</button>
       </div>
-      <div class="export-row">
+      <div class="export-row" style="margin-bottom:20px;">
         <div>
-          <div class="export-label">Rohdaten exportieren</div>
-          <div class="export-sub">Alle erfassten Messwerte als CSV</div>
+          <div class="export-label">Rohdaten (alle Klassen)</div>
+          <div class="export-sub">Alle Messwerte als CSV</div>
         </div>
         <button class="btn btn-secondary" onclick="exportCSV()">📄 CSV</button>
+      </div>
+
+      <div style="font-size:12px;font-weight:600;color:var(--text-3);text-transform:uppercase;letter-spacing:0.05em;margin-bottom:8px;">Pro Klasse</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;" id="klassen-export-grid">
+        <button class="btn btn-ghost" style="font-size:13px;" onclick="exportKlasse('1')">📋 1. Klasse</button>
+        <button class="btn btn-ghost" style="font-size:13px;" onclick="exportKlasse('2')">📋 2. Klasse</button>
+        <button class="btn btn-ghost" style="font-size:13px;" onclick="exportKlasse('3')">📋 3. Klasse</button>
+        <button class="btn btn-ghost" style="font-size:13px;" onclick="exportKlasse('4')">📋 4. Klasse</button>
+        <button class="btn btn-ghost" style="font-size:13px;" onclick="exportKlasse('5')">📋 5. Klasse</button>
+        <button class="btn btn-ghost" style="font-size:13px;" onclick="exportKlasse('6')">📋 6. Klasse</button>
       </div>
     </div>
   </div>
@@ -933,11 +945,14 @@ function renderRankGroup(kl, g, results) {
 }
 
 // ============ EXPORT ============
-function exportExcel() {
-  if (!susList.length) { alert('Keine Schülerliste geladen.'); return; }
-  const wb = XLSX.utils.book_new();
-  const rankRows = [['Klasse','Geschlecht','Rang','Name','Rang-Summe','Ballweitwurf (m)','Ausdauerlauf (Rd.)','Hochsprung (cm)','Weitsprung best (cm)','WS V1','WS V2','WS V3','Schnellauf (s)']];
-  for (const kl of ['1','2','3','4','5','6']) {
+
+// --- Helper: build ranking rows for given klassen ---
+function buildRankRows(klassen) {
+  const HEADER = ['Klasse','Geschlecht','Rang','Name','Rang-Summe',
+    'Ballweitwurf (m)','Ausdauerlauf (Rd.)','Hochsprung (cm)',
+    'Weitsprung best (cm)','WS V1','WS V2','WS V3','Schnellauf (s)'];
+  const rows = [HEADER];
+  for (const kl of klassen) {
     for (const g of ['m','w']) {
       const kids = susList.filter(s => s.klasse === kl && s.geschlecht === g);
       if (!kids.length) continue;
@@ -947,48 +962,89 @@ function exportExcel() {
           const v = messwerte[mkKey(p, kl, 'A', r.kid.name)] ?? messwerte[mkKey(p, kl, 'B', r.kid.name)];
           return v !== undefined ? v : '';
         });
-        const wKey = mkKey('weitsprung', kl, 'A', r.kid.name) + '||jumps';
+        const wKey  = mkKey('weitsprung', kl, 'A', r.kid.name) + '||jumps';
         const wKeyB = mkKey('weitsprung', kl, 'B', r.kid.name) + '||jumps';
         const jumps = messwerte[wKey] || messwerte[wKeyB] || [null,null,null];
         vals.splice(postenKeys.indexOf('weitsprung') + 1, 0, jumps[0]??'', jumps[1]??'', jumps[2]??'');
-        rankRows.push([kl+'. Kl.', g==='m'?'Knaben':'Mädchen', i+1, r.kid.name, r.totalRank, ...vals]);
+        rows.push([kl+'. Kl.', g==='m'?'Knaben':'Mädchen', i+1, r.kid.name, r.totalRank, ...vals]);
       });
     }
   }
-  const ws1 = XLSX.utils.aoa_to_sheet(rankRows);
-  XLSX.utils.book_append_sheet(wb, ws1, 'Rangliste');
-  const rawRows = [['Name','Klasse','Geschlecht','Posten','Gruppe','Wert','Einheit','V1','V2','V3']];
+  return rows;
+}
+
+// --- Helper: build messwerte rows for given klassen ---
+function buildMesswertRows(klassen) {
+  const HEADER = ['Name','Klasse','Geschlecht','Posten','Gruppe','Wert','Einheit','V1','V2','V3'];
+  const rows = [HEADER];
   Object.entries(messwerte).forEach(([key, val]) => {
     if (key.endsWith('||jumps')) return;
     const [posten, klasse, gruppe, name] = key.split('||');
     if (!POSTEN[posten]) return;
+    if (!klassen.includes(klasse)) return;
     const sus = susList.find(s => s.name === name);
     if (!sus) return;
     let v1='',v2='',v3='';
     if (posten === 'weitsprung') { const j = messwerte[key+'||jumps']||[]; v1=j[0]??''; v2=j[1]??''; v3=j[2]??''; }
-    rawRows.push([name, klasse+'. Kl.', sus.geschlecht==='m'?'Knaben':'Mädchen', POSTEN[posten].label, gruppe, val, POSTEN[posten].einheit, v1, v2, v3]);
+    rows.push([name, klasse+'. Kl.', sus.geschlecht==='m'?'Knaben':'Mädchen',
+      POSTEN[posten].label, gruppe, val, POSTEN[posten].einheit, v1, v2, v3]);
   });
-  XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(rawRows), 'Rohdaten');
+  return rows;
+}
+
+// --- Gesamtexport Excel ---
+function exportExcel() {
+  if (!susList.length) { alert('Keine Schülerliste geladen.'); return; }
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(buildRankRows(['1','2','3','4','5','6'])), 'Rangliste');
+  XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(buildMesswertRows(['1','2','3','4','5','6'])), 'Rohdaten');
   XLSX.writeFile(wb, 'Sporttag_Rangliste.xlsx');
 }
 
+// --- Gesamtexport CSV ---
 function exportCSV() {
-  const rows = [['Name','Klasse','Geschlecht','Posten','Gruppe','Wert','Einheit','V1','V2','V3']];
-  Object.entries(messwerte).forEach(([key, val]) => {
-    if (key.endsWith('||jumps')) return;
-    const [posten, klasse, gruppe, name] = key.split('||');
-    if (!POSTEN[posten]) return;
-    const sus = susList.find(s => s.name === name);
-    if (!sus) return;
-    let v1='',v2='',v3='';
-    if (posten === 'weitsprung') { const j = messwerte[key+'||jumps']||[]; v1=j[0]??''; v2=j[1]??''; v3=j[2]??''; }
-    rows.push([name, klasse, sus.geschlecht, POSTEN[posten].label, gruppe, val, POSTEN[posten].einheit, v1, v2, v3]);
-  });
+  const rows = buildMesswertRows(['1','2','3','4','5','6']);
   const csv = rows.map(r => r.map(c => `"${String(c).replace(/"/g,'""')}"`).join(',')).join('\n');
   const blob = new Blob(['\uFEFF'+csv], {type:'text/csv;charset=utf-8;'});
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a'); a.href=url; a.download='Sporttag_Rohdaten.csv'; a.click();
   URL.revokeObjectURL(url);
+}
+
+// --- Export einzelne Klasse ---
+function exportKlasse(kl) {
+  if (!susList.length) { alert('Keine Schülerliste geladen.'); return; }
+  const wb = XLSX.utils.book_new();
+
+  // Sheet 1: Rangliste der Klasse
+  XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(buildRankRows([kl])), `Rangliste ${kl}. Kl.`);
+
+  // Sheet 2: Messwerte pro Disziplin (übersichtliche Querdarstellung)
+  const postenKeys = Object.keys(POSTEN);
+  const header = ['Name', 'Gruppe', 'Geschlecht', ...postenKeys.map(p => {
+    if (p === 'weitsprung') return [`Weitsprung best (cm)`, 'WS V1', 'WS V2', 'WS V3'];
+    return `${POSTEN[p].label} (${POSTEN[p].einheit})`;
+  }).flat()];
+  const detailRows = [header];
+  const kids = susList.filter(s => s.klasse === kl).sort((a,b) => a.name.localeCompare(b.name));
+  kids.forEach(kid => {
+    const row = [kid.name, kid.gruppe || '', kid.geschlecht === 'm' ? 'Knabe' : 'Mädchen'];
+    postenKeys.forEach(p => {
+      const v = messwerte[mkKey(p, kl, 'A', kid.name)] ?? messwerte[mkKey(p, kl, 'B', kid.name)] ?? '';
+      if (p === 'weitsprung') {
+        const wKey = mkKey('weitsprung', kl, 'A', kid.name) + '||jumps';
+        const wKeyB = mkKey('weitsprung', kl, 'B', kid.name) + '||jumps';
+        const jumps = messwerte[wKey] || messwerte[wKeyB] || [null,null,null];
+        row.push(v, jumps[0]??'', jumps[1]??'', jumps[2]??'');
+      } else {
+        row.push(v);
+      }
+    });
+    detailRows.push(row);
+  });
+  XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(detailRows), `Messwerte ${kl}. Kl.`);
+
+  XLSX.writeFile(wb, `Sporttag_Klasse_${kl}.xlsx`);
 }
 
 // ============ UTILS ============
