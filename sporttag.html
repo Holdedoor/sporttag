@@ -360,14 +360,13 @@
                   <div><div class="item-label">Alle Klassen – CSV</div><div class="item-sub">Rohdaten aller Messwerte</div></div>
                 </button>
               </div>
-              <div class="export-dropdown-section">
-                <div class="export-dropdown-label">Pro Klasse</div>
-                <button class="export-dropdown-item" onclick="exportKlasse('1');closeExportMenu()"><span class="item-icon">📋</span><div><div class="item-label">1. Klasse</div></div></button>
-                <button class="export-dropdown-item" onclick="exportKlasse('2');closeExportMenu()"><span class="item-icon">📋</span><div><div class="item-label">2. Klasse</div></div></button>
-                <button class="export-dropdown-item" onclick="exportKlasse('3');closeExportMenu()"><span class="item-icon">📋</span><div><div class="item-label">3. Klasse</div></div></button>
-                <button class="export-dropdown-item" onclick="exportKlasse('4');closeExportMenu()"><span class="item-icon">📋</span><div><div class="item-label">4. Klasse</div></div></button>
-                <button class="export-dropdown-item" onclick="exportKlasse('5');closeExportMenu()"><span class="item-icon">📋</span><div><div class="item-label">5. Klasse</div></div></button>
-                <button class="export-dropdown-item" onclick="exportKlasse('6');closeExportMenu()"><span class="item-icon">📋</span><div><div class="item-label">6. Klasse</div></div></button>
+              <div class="export-dropdown-section" id="export-klassen-section">
+                <div class="export-dropdown-label">Pro Klasse (Klassenverband)</div>
+                <div id="export-klassen-items"><div style="padding:8px 14px;font-size:12px;color:var(--text-3)">Wird geladen…</div></div>
+              </div>
+              <div class="export-dropdown-section" id="export-stufen-section">
+                <div class="export-dropdown-label">Pro Jahrgangsstufe</div>
+                <div id="export-stufen-items"><div style="padding:8px 14px;font-size:12px;color:var(--text-3)">Wird geladen…</div></div>
               </div>
             </div>
           </div>
@@ -385,8 +384,8 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <script>
 // ============ SUPABASE ============
-const SUPA_URL = 'https://xzcqihobgqolodguxfnu.supabase.co';
-const SUPA_KEY = 'sb_publishable_l4KDPDKaafgO-x_jkCVyTA_YNUYBLyF';
+const SUPA_URL = 'https://dtedcfrfldptllhonaqh.supabase.co';
+const SUPA_KEY = 'sb_publishable_TGq4V3Dpl6i4Go3M388rlg_-NEEEGn_';
 
 async function sbFetch(path, opts = {}) {
   const res = await fetch(SUPA_URL + '/rest/v1/' + path, {
@@ -627,11 +626,11 @@ function loadSusList() {
   card.classList.remove('hidden');
 
   const posten = POSTEN[selectedPosten];
-  const sorted = [...kids].sort((a,b) => a.name.localeCompare(b.name));
+  const sorted = [...kids].sort((a,b) => a.anzeige.localeCompare(b.anzeige));
   const isWeitsprung = selectedPosten === 'weitsprung';
 
   document.getElementById('sus-list').innerHTML = sorted.map((s, i) => {
-    const key = mkKey(selectedPosten, selectedKlasse, selectedGruppe, s.name);
+    const key = mkKey(selectedPosten, selectedKlasse, selectedGruppe, s.anzeige);
 
     if (isWeitsprung) {
       const jumps = messwerte[key + '||jumps'] || [null, null, null];
@@ -639,10 +638,10 @@ function loadSusList() {
       const hasVal = best !== null;
       const jumpVals = [0,1,2].map(j => (jumps[j] !== null && jumps[j] !== undefined) ? jumps[j] : '');
       return `
-      <div class="sus-item ${hasVal?'has-data':''}" id="item-${i}" onclick="toggleInput(${i},'${escAttr(s.name)}','${key}','cm')">
+      <div class="sus-item ${hasVal?'has-data':''}" id="item-${i}" onclick="toggleInput(${i},'${escAttr(s.anzeige)}','${key}','cm')">
         <div>
-          <div class="sus-name">${escHtml(s.name)}</div>
-          <div class="sus-meta">${s.klasse}. Kl. · ${s.geschlecht==='m'?'Knabe':'Mädchen'}</div>
+          <div class="sus-name">${escHtml(s.anzeige)}</div>
+          <div class="sus-meta">${escHtml(s.klasse)} · ${s.geschlecht==='m'?'Knabe':'Mädchen'}</div>
         </div>
         <div class="${hasVal?'sus-value':'sus-value empty'}" id="val-${i}">
           ${hasVal ? `${best} <span style="font-size:12px;font-weight:400;color:var(--text-3)">cm</span><span style="font-size:11px;color:var(--text-3);display:block;text-align:right">bester Versuch</span>` : '– nicht erfasst'}
@@ -667,10 +666,10 @@ function loadSusList() {
     const val = messwerte[key];
     const hasVal = val !== undefined && val !== '';
     return `
-    <div class="sus-item ${hasVal?'has-data':''}" id="item-${i}" onclick="toggleInput(${i},'${escAttr(s.name)}','${key}','${posten.einheit}')">
+    <div class="sus-item ${hasVal?'has-data':''}" id="item-${i}" onclick="toggleInput(${i},'${escAttr(s.anzeige)}','${key}','${posten.einheit}')">
       <div>
-        <div class="sus-name">${escHtml(s.name)}</div>
-        <div class="sus-meta">${s.klasse}. Kl. · ${s.geschlecht==='m'?'Knabe':'Mädchen'}</div>
+        <div class="sus-name">${escHtml(s.anzeige)}</div>
+        <div class="sus-meta">${escHtml(s.klasse)} · ${s.geschlecht==='m'?'Knabe':'Mädchen'}</div>
       </div>
       <div class="${hasVal?'sus-value':'sus-value empty'}" id="val-${i}">
         ${hasVal ? `${val} <span style="font-size:12px;font-weight:400;color:var(--text-3)">${posten.einheit}</span>` : '– nicht erfasst'}
@@ -679,10 +678,10 @@ function loadSusList() {
     <div class="inline-input" id="input-${i}">
       <input type="number" id="num-${i}" placeholder="Wert" step="0.01" min="0"
         value="${hasVal?val:''}"
-        onkeydown="if(event.key==='Enter')saveVal(${i},'${key}','${escAttr(s.name)}','${posten.einheit}')"
+        onkeydown="if(event.key==='Enter')saveVal(${i},'${key}','${escAttr(s.anzeige)}','${posten.einheit}')"
         oninput="autoSave(${i},'${key}','${posten.einheit}')">
       <span class="unit">${posten.einheit}</span>
-      <button class="btn btn-primary" style="padding:8px 14px" onclick="saveVal(${i},'${key}','${escAttr(s.name)}','${posten.einheit}')">OK</button>
+      <button class="btn btn-primary" style="padding:8px 14px" onclick="saveVal(${i},'${key}','${escAttr(s.anzeige)}','${posten.einheit}')">OK</button>
     </div>`;
   }).join('');
 
@@ -742,9 +741,9 @@ function updateValDisplay(i, v, einheit) {
 
 function updateProgress() {
   if (!selectedPosten || !selectedGruppe || !selectedKlasse) return;
-  const kids = susList.filter(s => s.klasse === selectedKlasse);
+  const kids = susList.filter(s => s.jahrgangsstufe === selectedKlasse && (s.gruppe===''||s.gruppe===selectedGruppe));
   const filled = kids.filter(s => {
-    const key = mkKey(selectedPosten, selectedKlasse, selectedGruppe, s.name);
+    const key = mkKey(selectedPosten, selectedKlasse, selectedGruppe, s.anzeige);
     if (selectedPosten === 'weitsprung') return getBestJump(messwerte[key + '||jumps'] || []) !== null;
     return messwerte[key] !== undefined;
   }).length;
@@ -811,7 +810,7 @@ function buildRangliste() {
   let html = '';
   for (const kl of stufen) {
     for (const g of geschlechter) {
-      const kids = susList.filter(s => s.klasse === kl && s.geschlecht === g);
+      const kids = susList.filter(s => s.jahrgangsstufe === kl && s.geschlecht === g);
       if (!kids.length) continue;
       html += renderRankGroup(kl, g, calcRanking(kids, kl));
     }
@@ -823,8 +822,8 @@ function calcRanking(kids, kl) {
   const results = kids.map(kid => {
     let totalRank = 0, diszDetails = [], complete = true;
     for (const [pKey, pInfo] of Object.entries(POSTEN)) {
-      const valA = messwerte[mkKey(pKey, kl, 'A', kid.name)];
-      const valB = messwerte[mkKey(pKey, kl, 'B', kid.name)];
+      const valA = messwerte[mkKey(pKey, kl, 'A', kid.anzeige)];
+      const valB = messwerte[mkKey(pKey, kl, 'B', kid.anzeige)];
       const val = valA !== undefined ? valA : valB;
       if (val === undefined) complete = false;
       diszDetails.push({ posten: pKey, label: pInfo.label, val, einheit: pInfo.einheit });
@@ -858,7 +857,7 @@ function renderRankGroup(kl, g, results) {
     <div class="rank-row ${i < 3 ? 'rank-'+(i+1) : ''}">
       <div class="rank-num ${i < 3 ? rankClass[i] : 'normal'}">${i < 3 ? medals[i] : (i+1)+'.'}</div>
       <div style="flex:1;min-width:0;">
-        <div class="rank-name">${escHtml(r.kid.name)}</div>
+        <div class="rank-name">${escHtml(r.kid.anzeige)}</div>
         <div class="rank-detail">${detailStr}</div>
       </div>
       <div class="rank-score" title="Summe der Einzelränge">${r.totalRank}</div>
@@ -886,19 +885,19 @@ function buildRankRows(klassen) {
   const rows = [HEADER];
   for (const kl of klassen) {
     for (const g of ['m','w']) {
-      const kids = susList.filter(s => s.klasse === kl && s.geschlecht === g);
+      const kids = susList.filter(s => s.jahrgangsstufe === kl && s.geschlecht === g);
       if (!kids.length) continue;
       calcRanking(kids, kl).forEach((r, i) => {
         const postenKeys = Object.keys(POSTEN);
         const vals = postenKeys.map(p => {
-          const v = messwerte[mkKey(p, kl, 'A', r.kid.name)] ?? messwerte[mkKey(p, kl, 'B', r.kid.name)];
+          const v = messwerte[mkKey(p, kl, 'A', r.kid.anzeige)] ?? messwerte[mkKey(p, kl, 'B', r.kid.anzeige)];
           return v !== undefined ? v : '';
         });
-        const wKey  = mkKey('weitsprung', kl, 'A', r.kid.name) + '||jumps';
-        const wKeyB = mkKey('weitsprung', kl, 'B', r.kid.name) + '||jumps';
+        const wKey  = mkKey('weitsprung', kl, 'A', r.kid.anzeige) + '||jumps';
+        const wKeyB = mkKey('weitsprung', kl, 'B', r.kid.anzeige) + '||jumps';
         const jumps = messwerte[wKey] || messwerte[wKeyB] || [null,null,null];
         vals.splice(postenKeys.indexOf('weitsprung') + 1, 0, jumps[0]??'', jumps[1]??'', jumps[2]??'');
-        rows.push([kl+'. Kl.', g==='m'?'Knaben':'Mädchen', i+1, r.kid.name, r.totalRank, ...vals]);
+        rows.push([kl+'. Kl.', g==='m'?'Knaben':'Mädchen', i+1, r.kid.anzeige, r.totalRank, ...vals]);
       });
     }
   }
@@ -914,11 +913,11 @@ function buildMesswertRows(klassen) {
     const [posten, klasse, gruppe, name] = key.split('||');
     if (!POSTEN[posten]) return;
     if (!klassen.includes(klasse)) return;
-    const sus = susList.find(s => s.name === name);
+    const sus = susList.find(s => s.anzeige === name);
     if (!sus) return;
     let v1='',v2='',v3='';
     if (posten === 'weitsprung') { const j = messwerte[key+'||jumps']||[]; v1=j[0]??''; v2=j[1]??''; v3=j[2]??''; }
-    rows.push([name, klasse+'. Kl.', sus.geschlecht==='m'?'Knaben':'Mädchen',
+    rows.push([name, sus.klasse, sus.geschlecht==='m'?'Knaben':'Mädchen',
       POSTEN[posten].label, gruppe, val, POSTEN[posten].einheit, v1, v2, v3]);
   });
   return rows;
@@ -928,14 +927,16 @@ function buildMesswertRows(klassen) {
 function exportExcel() {
   if (!susList.length) { alert('Keine Schülerliste geladen.'); return; }
   const wb = XLSX.utils.book_new();
-  XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(buildRankRows(['1','2','3','4','5','6'])), 'Rangliste');
-  XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(buildMesswertRows(['1','2','3','4','5','6'])), 'Rohdaten');
+  const allStufen = [...new Set(susList.map(s=>s.jahrgangsstufe).filter(Boolean))].sort();
+  XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(buildRankRows(allStufen)), 'Rangliste');
+  XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(buildMesswertRows(allStufen)), 'Rohdaten');
   XLSX.writeFile(wb, 'Sporttag_Rangliste.xlsx');
 }
 
 // --- Gesamtexport CSV ---
 function exportCSV() {
-  const rows = buildMesswertRows(['1','2','3','4','5','6']);
+  const allStufen2 = [...new Set(susList.map(s=>s.jahrgangsstufe).filter(Boolean))].sort();
+  const rows = buildMesswertRows(allStufen2);
   const csv = rows.map(r => r.map(c => `"${String(c).replace(/"/g,'""')}"`).join(',')).join('\n');
   const blob = new Blob(['\uFEFF'+csv], {type:'text/csv;charset=utf-8;'});
   const url = URL.createObjectURL(blob);
@@ -949,7 +950,8 @@ function exportKlasse(kl) {
   const wb = XLSX.utils.book_new();
 
   // Sheet 1: Rangliste der Klasse
-  XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(buildRankRows([kl])), `Rangliste ${kl}. Kl.`);
+  const jsKl = susList.find(s=>s.klasse===kl)?.jahrgangsstufe;
+  XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(jsKl ? buildRankRows([jsKl]) : [[]]), 'Rangliste');
 
   // Sheet 2: Messwerte pro Disziplin (übersichtliche Querdarstellung)
   const postenKeys = Object.keys(POSTEN);
@@ -958,14 +960,14 @@ function exportKlasse(kl) {
     return `${POSTEN[p].label} (${POSTEN[p].einheit})`;
   }).flat()];
   const detailRows = [header];
-  const kids = susList.filter(s => s.klasse === kl).sort((a,b) => a.name.localeCompare(b.name));
+  const kids = susList.filter(s => s.klasse === kl).sort((a,b) => a.anzeige.localeCompare(b.anzeige));
   kids.forEach(kid => {
-    const row = [kid.name, kid.gruppe || '', kid.geschlecht === 'm' ? 'Knabe' : 'Mädchen'];
+    const row = [kid.anzeige, kid.gruppe || '', kid.geschlecht === 'm' ? 'Knabe' : 'Mädchen'];
     postenKeys.forEach(p => {
-      const v = messwerte[mkKey(p, kl, 'A', kid.name)] ?? messwerte[mkKey(p, kl, 'B', kid.name)] ?? '';
+      const v = messwerte[mkKey(p, kid.jahrgangsstufe, 'A', kid.anzeige)] ?? messwerte[mkKey(p, kid.jahrgangsstufe, 'B', kid.anzeige)] ?? '';
       if (p === 'weitsprung') {
-        const wKey = mkKey('weitsprung', kl, 'A', kid.name) + '||jumps';
-        const wKeyB = mkKey('weitsprung', kl, 'B', kid.name) + '||jumps';
+        const wKey = mkKey('weitsprung', kid.jahrgangsstufe, 'A', kid.anzeige) + '||jumps';
+        const wKeyB = mkKey('weitsprung', kid.jahrgangsstufe, 'B', kid.anzeige) + '||jumps';
         const jumps = messwerte[wKey] || messwerte[wKeyB] || [null,null,null];
         row.push(v, jumps[0]??'', jumps[1]??'', jumps[2]??'');
       } else {
@@ -974,14 +976,62 @@ function exportKlasse(kl) {
     });
     detailRows.push(row);
   });
-  XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(detailRows), `Messwerte ${kl}. Kl.`);
+  const safeKl = kl.replace(/[\/\\:*?"<>|]/g,'_').substring(0,28);
+  XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(detailRows), 'Messwerte');
 
-  XLSX.writeFile(wb, `Sporttag_Klasse_${kl}.xlsx`);
+  XLSX.writeFile(wb, `Sporttag_${safeKl}.xlsx`);
 }
 
 // ============ EXPORT MENU ============
+function buildExportDropdown() {
+  // By Klasse (Klassenverband)
+  const klassen = [...new Set(susList.map(s=>s.klasse).filter(Boolean))].sort();
+  document.getElementById('export-klassen-items').innerHTML = klassen.map(kl =>
+    `<button class="export-dropdown-item" onclick="exportKlasse('${kl.replace(/'/g,"\\'")}');closeExportMenu()">
+      <span class="item-icon">📋</span><div><div class="item-label">${kl}</div></div>
+    </button>`
+  ).join('') || '<div style="padding:8px 14px;font-size:12px;color:var(--text-3)">Keine Daten</div>';
+
+  // By Jahrgangsstufe (alle SuS dieser Stufe)
+  const stufen = [...new Set(susList.map(s=>s.jahrgangsstufe).filter(Boolean))].sort();
+  document.getElementById('export-stufen-items').innerHTML = stufen.map(st =>
+    `<button class="export-dropdown-item" onclick="exportStufe('${st}');closeExportMenu()">
+      <span class="item-icon">🏫</span><div><div class="item-label">${st}. Klasse (alle)</div></div>
+    </button>`
+  ).join('') || '<div style="padding:8px 14px;font-size:12px;color:var(--text-3)">Keine Daten</div>';
+}
+
+function exportStufe(stufe) {
+  if (!susList.length) { alert('Keine Schülerliste geladen.'); return; }
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(buildRankRows([stufe])), 'Rangliste');
+  const postenKeys = Object.keys(POSTEN);
+  const header = ['Name', 'Klasse', 'Gruppe', 'Geschlecht', ...postenKeys.map(p => {
+    if (p === 'weitsprung') return ['Weitsprung best (cm)', 'WS V1', 'WS V2', 'WS V3'];
+    return `${POSTEN[p].label} (${POSTEN[p].einheit})`;
+  }).flat()];
+  const detailRows = [header];
+  const kids = susList.filter(s => s.jahrgangsstufe === stufe).sort((a,b) => a.anzeige.localeCompare(b.anzeige));
+  kids.forEach(kid => {
+    const row = [kid.anzeige, kid.klasse, kid.gruppe || '', kid.geschlecht === 'm' ? 'Knabe' : 'Mädchen'];
+    postenKeys.forEach(p => {
+      const v = messwerte[mkKey(p, stufe, 'A', kid.anzeige)] ?? messwerte[mkKey(p, stufe, 'B', kid.anzeige)] ?? '';
+      if (p === 'weitsprung') {
+        const wKey = mkKey('weitsprung', stufe, 'A', kid.anzeige) + '||jumps';
+        const wKeyB = mkKey('weitsprung', stufe, 'B', kid.anzeige) + '||jumps';
+        const jumps = messwerte[wKey] || messwerte[wKeyB] || [null,null,null];
+        row.push(v, jumps[0]??'', jumps[1]??'', jumps[2]??'');
+      } else { row.push(v); }
+    });
+    detailRows.push(row);
+  });
+  XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(detailRows), 'Messwerte');
+  XLSX.writeFile(wb, `Sporttag_Jahrgangsstufe_${stufe}.xlsx`);
+}
+
 function toggleExportMenu(e) {
   e.stopPropagation();
+  buildExportDropdown();
   const menu = document.getElementById('export-menu');
   const arrow = document.getElementById('export-arrow');
   const isOpen = menu.classList.contains('open');

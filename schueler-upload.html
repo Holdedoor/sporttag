@@ -68,7 +68,7 @@
   <div id="preview-section" class="hidden">
     <div class="stat-row" id="stats"></div>
     <div style="max-height:220px;overflow-y:auto;margin-bottom:16px;">
-      <table><thead><tr><th>Name</th><th>Klasse</th><th>Geschlecht</th><th>Gruppe</th></tr></thead>
+      <table><thead><tr><th>Anzeigename</th><th>Klasse</th><th>Jahrgangsstufe</th><th>Geschlecht</th><th>Gruppe</th></tr></thead>
       <tbody id="preview-body"></tbody></table>
     </div>
     <div id="progress-wrap" class="hidden">
@@ -83,8 +83,8 @@
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <script>
-const SUPA_URL = 'https://xzcqihobgqolodguxfnu.supabase.co';
-const SUPA_KEY = 'sb_publishable_l4KDPDKaafgO-x_jkCVyTA_YNUYBLyF';
+const SUPA_URL = 'https://dtedcfrfldptllhonaqh.supabase.co';
+const SUPA_KEY = 'sb_publishable_TGq4V3Dpl6i4Go3M388rlg_-NEEEGn_';
 
 async function sbFetch(path, opts = {}) {
   const res = await fetch(SUPA_URL + '/rest/v1/' + path, {
@@ -141,18 +141,33 @@ function parseRows(rows) {
     return null;
   };
   const sample = rows[0];
-  const nameCol   = findCol(sample, ['name','vorname','schüler','sus']);
-  const klasseCol = findCol(sample, ['klasse','stufe','class','jahrgang']);
-  const geschCol  = findCol(sample, ['geschlecht','gender','sex','m/w']);
-  if (!nameCol || !klasseCol) { alert('Spalten «Name» und «Klasse» nicht gefunden.'); return; }
+  const vornameCol = findCol(sample, ['vorname','first']);
+  const nameCol    = findCol(sample, ['nachname','name','familienname','surname']);
+  const klasseCol  = findCol(sample, ['klasse','class']);
+  const jsCol      = findCol(sample, ['jahrgangsstufe','jahrgang','stufe','jahrgangsstufe']);
+  const geschCol   = findCol(sample, ['geschlecht','gender','sex','m/w']);
+  const gruppeCol  = findCol(sample, ['gruppe','group','grp']);
 
-  const gruppeCol = findCol(sample, ['gruppe','group','grp']);
-  parsedRows = rows.map(r => ({
-    name: String(r[nameCol]||'').trim(),
-    klasse: String(r[klasseCol]||'').trim().replace(/[^1-6]/g,''),
-    geschlecht: normalizeG(String(r[geschCol]||'')),
-    gruppe: gruppeCol ? String(r[gruppeCol]||'').trim().toUpperCase() : '',
-  })).filter(s => s.name && s.klasse);
+  if (!klasseCol) { alert('Spalte «Klasse» nicht gefunden.'); return; }
+
+  parsedRows = rows.map(r => {
+    const vorname = vornameCol ? String(r[vornameCol]||'').trim() : '';
+    const name    = nameCol    ? String(r[nameCol]||'').trim()    : '';
+    // Extract first vorname only (in case of multiple)
+    const ersterVorname = vorname.split(/[\s,]+/)[0];
+    const anzeige = (ersterVorname + ' ' + name).trim();
+    const klasse = String(r[klasseCol]||'').trim();
+    const js = jsCol ? String(r[jsCol]||'').trim().replace(/[^1-9]/g,'').substring(0,1) : '';
+    return {
+      vorname: ersterVorname,
+      name,
+      anzeige,
+      klasse,
+      jahrgangsstufe: js,
+      geschlecht: normalizeG(String(r[geschCol]||'')),
+      gruppe: gruppeCol ? String(r[gruppeCol]||'').trim().toUpperCase() : '',
+    };
+  }).filter(s => s.klasse);
 
   showPreview();
 }
@@ -182,11 +197,12 @@ function showPreview() {
   const show = parsedRows.slice(0, 30);
   document.getElementById('preview-body').innerHTML = show.map(s => `
     <tr>
-      <td>${esc(s.name)}</td>
-      <td><span class="badge badge-g">${s.klasse}. Kl.</span></td>
+      <td>${esc(s.anzeige)}</td>
+      <td><span class="badge badge-g">${esc(s.klasse)}</span></td>
+      <td><span class="badge badge-g">${s.jahrgangsstufe ? s.jahrgangsstufe+'.' : '–'}</span></td>
       <td><span class="badge ${s.geschlecht==='m'?'badge-m':'badge-f'}">${s.geschlecht}</span></td>
       <td><span class="badge badge-g">${s.gruppe || '–'}</span></td>
-    </tr>`).join('') + (parsedRows.length > 30 ? `<tr><td colspan="4" style="color:var(--text-3);text-align:center;padding:8px">… und ${parsedRows.length-30} weitere</td></tr>` : '');
+    </tr>`).join('') + (parsedRows.length > 30 ? `<tr><td colspan="5" style="color:var(--text-3);text-align:center;padding:8px">… und ${parsedRows.length-30} weitere</td></tr>` : '');
 }
 
 async function doUpload() {
@@ -216,9 +232,13 @@ async function doUpload() {
     }
 
     setProgress(100, 'Fertig!');
+    const byKlasse = {};
+    parsedRows.forEach(s => { byKlasse[s.klasse] = (byKlasse[s.klasse]||0)+1; });
+    const klInfo = Object.entries(byKlasse).sort().map(([k,v])=>`${k}: ${v}`).join(', ');
     document.getElementById('result-msg').innerHTML = `
       <div class="info green" style="margin-bottom:12px;">
         ✅ <strong>${parsedRows.length} Schülerinnen & Schüler</strong> wurden erfolgreich in Supabase gespeichert.<br>
+        <span style="font-size:12px;">${klInfo}</span><br>
         Die Sporttag-App lädt die Liste ab sofort automatisch beim Start.
       </div>`;
     btn.textContent = '✓ Erfolgreich hochgeladen';
