@@ -304,6 +304,7 @@
     <div style="font-size:28px;margin-bottom:8px;">📋</div>
     <div style="font-weight:600;margin-bottom:6px;">Keine SuS in dieser Gruppe / Klasse</div>
     <div class="text-sm">Für diese Klasse sind keine SuS in deiner Gruppe erfasst.</div>
+    <div id="debug-info" style="margin-top:12px;padding:10px;background:#f0f0f0;border-radius:8px;font-size:11px;text-align:left;font-family:monospace;color:#333;"></div>
   </div>
 
 </div>
@@ -623,6 +624,10 @@ function loadSusList() {
     card.classList.add('hidden');
     noSus.classList.remove('hidden');
     document.getElementById('sus-progress').textContent = '';
+    // Debug info
+    const sample = susList.slice(0,3).map(s => `js="${s.jahrgangsstufe}" gr="${s.gruppe}" name="${s.anzeige}"`).join(' | ');
+    const dbg = document.getElementById('debug-info');
+    if (dbg) dbg.innerHTML = `<b>Debug:</b><br>selectedKlasse: "${selectedKlasse}"<br>selectedGruppe: "${selectedGruppe}"<br>susList.length: ${susList.length}<br>Erste 3 SuS: ${sample || '(leer)'}`;
     return;
   }
   noSus.classList.add('hidden');
