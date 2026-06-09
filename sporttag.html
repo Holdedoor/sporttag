@@ -236,8 +236,10 @@ body{font-family:system-ui,-apple-system,sans-serif;background:var(--bg);color:v
       <div id="ug-row">
         <div class="sec-label" style="margin-bottom:6px">Untergruppe</div>
         <div class="chips" id="ug-chips">
-          <div class="chip" data-v="1" onclick="pickUG(this)" id="ug-chip-1">Untergruppe 1</div>
-          <div class="chip" data-v="2" onclick="pickUG(this)" id="ug-chip-2">Untergruppe 2</div>
+          <div class="chip" data-v="1" onclick="pickUG(this)" id="ug-chip-1">🔴 Rot</div>
+          <div class="chip" data-v="2" onclick="pickUG(this)" id="ug-chip-2">🟡 Gelb</div>
+          <div class="chip" data-v="3" onclick="pickUG(this)" id="ug-chip-3">🔵 Blau</div>
+          <div class="chip" data-v="4" onclick="pickUG(this)" id="ug-chip-4">🟢 Grün</div>
         </div>
       </div>
       <div class="divider"></div>
@@ -552,17 +554,14 @@ function pickKlasse(el, silent) {
   selK = el.dataset.v;
   if(!silent){ savesel(); renderList(); if(selP==='schnellauf'&&swStopped!==null) swBuildAssign(); }
 }
-// UG colour names: Gruppe A → 1=Rot, 2=Gelb | Gruppe B → 1=Blau, 2=Grün
-function ugName(gruppe, ug) {
-  if(gruppe==='A') return ug==='1' ? '🔴 Rot' : '🟡 Gelb';
-  if(gruppe==='B') return ug==='1' ? '🔵 Blau' : '🟢 Grün';
-  return 'Untergruppe '+ug;
-}
+// UG colour names: same for both groups
+const UG_NAMES = { '1':'🔴 Rot', '2':'🟡 Gelb', '3':'🔵 Blau', '4':'🟢 Grün' };
+function ugName(gruppe, ug) { return UG_NAMES[ug] || ('Gruppe '+ug); }
 function updateUGChips() {
-  const c1 = document.getElementById('ug-chip-1');
-  const c2 = document.getElementById('ug-chip-2');
-  if(c1) c1.textContent = ugName(selG, '1');
-  if(c2) c2.textContent = ugName(selG, '2');
+  [1,2,3,4].forEach(n=>{
+    const el=document.getElementById('ug-chip-'+n);
+    if(el) el.textContent=UG_NAMES[String(n)];
+  });
 }
 function pickUG(el, silent) {
   document.querySelectorAll('#ug-chips .chip').forEach(c=>c.classList.remove('on'));
@@ -604,12 +603,13 @@ function renderList() {
   const isAL = selP==='ausdauerlauf';
   const pInfo = POSTEN[selP];
 
-  // For Ausdauerlauf: split kids alphabetically into UG1 (first half) and UG2 (second half)
+  // For Ausdauerlauf: split kids alphabetically into 4 quarters
   let displayKids = kids;
   if(isAL && selUG) {
     const sorted = [...kids].sort((a,b)=>a.anzeige.localeCompare(b.anzeige));
-    const half = Math.ceil(sorted.length / 2);
-    displayKids = selUG==='1' ? sorted.slice(0, half) : sorted.slice(half);
+    const n=sorted.length, q=parseInt(selUG)-1;
+    const start=Math.round(q*n/4), end=Math.round((q+1)*n/4);
+    displayKids = sorted.slice(start, end);
   }
 
   // Progress
@@ -785,8 +785,9 @@ function updateProgress() {
   let kids=sus.filter(s=>s.js===selK&&s.gruppe===selG);
   if(isAL && selUG){
     const sorted=[...kids].sort((a,b)=>a.anzeige.localeCompare(b.anzeige));
-    const half=Math.ceil(sorted.length/2);
-    kids=selUG==='1'?sorted.slice(0,half):sorted.slice(half);
+    const n=sorted.length, q=parseInt(selUG)-1;
+    const start=Math.round(q*n/4), end=Math.round((q+1)*n/4);
+    kids=sorted.slice(start,end);
   }
   const done=kids.filter(s=>{ const k=mk(selP,selK,selG,s.anzeige); return isWS?(getBest(data[k+'|jumps'])!==null):(data[k]!==undefined&&data[k]>0); }).length;
   document.getElementById('progress').textContent=`${done} / ${kids.length} erfasst`;
