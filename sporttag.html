@@ -611,9 +611,9 @@ function selectKlasse(el) {
 
 function loadSusList() {
   if (!selectedPosten || !selectedGruppe || !selectedKlasse) return;
-  // Filter by klasse AND gruppe (if gruppe is set in susList, otherwise show all)
+  // Filter by jahrgangsstufe AND gruppe
   const kids = susList.filter(s =>
-    s.klasse === selectedKlasse &&
+    s.jahrgangsstufe === selectedKlasse &&
     (s.gruppe === '' || s.gruppe === selectedGruppe)
   );
   const card = document.getElementById('sus-list-card');
