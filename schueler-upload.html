@@ -173,20 +173,40 @@ function parseCSV(text) {
 }
 
 function parseRows(rows) {
-  const findCol = (row, names) => {
-    const keys = Object.keys(row).map(k => k.toLowerCase().trim());
-    for (const n of names) { const idx = keys.findIndex(k => k.includes(n)); if (idx >= 0) return Object.keys(row)[idx]; }
+  // Exact match first, then partial match as fallback
+  const findCol = (row, exactNames, partialNames) => {
+    const keys = Object.keys(row);
+    const keysLower = keys.map(k => k.toLowerCase().trim());
+    // Try exact match first
+    for (const n of exactNames) {
+      const idx = keysLower.findIndex(k => k === n);
+      if (idx >= 0) return keys[idx];
+    }
+    // Then partial match
+    if (partialNames) {
+      for (const n of partialNames) {
+        const idx = keysLower.findIndex(k => k.includes(n));
+        if (idx >= 0) return keys[idx];
+      }
+    }
     return null;
   };
   const sample = rows[0];
-  const vornameCol = findCol(sample, ['vorname','first']);
-  const nameCol    = findCol(sample, ['nachname','name','familienname','surname']);
-  const klasseCol  = findCol(sample, ['klasse','class']);
-  const jsCol      = findCol(sample, ['jahrgangsstufe','jahrgang','stufe','jahrgangsstufe']);
-  const geschCol   = findCol(sample, ['geschlecht','gender','sex','m/w']);
-  const gruppeCol  = findCol(sample, ['gruppe','group','grp']);
+  // «Vorname» must match exactly before «Name» (which is nachname)
+  const vornameCol = findCol(sample, ['vorname','firstname','first name'], ['vorname','first']);
+  const nameCol    = findCol(sample, ['name','nachname','familienname','surname','last name'], ['nachname','familienname','surname']);
+  const klasseCol  = findCol(sample, ['klasse','class'], ['klasse','class']);
+  const jsCol      = findCol(sample, ['jahrgangsstufe','jahrgang'], ['jahrgangsstufe','jahrgang','stufe']);
+  const geschCol   = findCol(sample, ['geschlecht','gender'], ['geschlecht','gender','sex','m/w']);
+  const gruppeCol  = findCol(sample, ['gruppe','group'], ['gruppe','group','grp']);
 
   if (!klasseCol) { alert('Spalte «Klasse» nicht gefunden.'); return; }
+
+  // Warn if vorname and name map to same column
+  if (vornameCol && nameCol && vornameCol === nameCol) {
+    alert('Warnung: Vorname und Name zeigen auf dieselbe Spalte. Bitte Spaltenbezeichnungen prüfen.');
+    return;
+  }
 
   parsedRows = rows.map(r => {
     const vorname = vornameCol ? String(r[vornameCol]||'').trim() : '';
