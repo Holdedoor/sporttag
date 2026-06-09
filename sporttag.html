@@ -236,8 +236,8 @@ body{font-family:system-ui,-apple-system,sans-serif;background:var(--bg);color:v
       <div id="ug-row">
         <div class="sec-label" style="margin-bottom:6px">Untergruppe</div>
         <div class="chips" id="ug-chips">
-          <div class="chip" data-v="1" onclick="pickUG(this)">Untergruppe 1</div>
-          <div class="chip" data-v="2" onclick="pickUG(this)">Untergruppe 2</div>
+          <div class="chip" data-v="1" onclick="pickUG(this)" id="ug-chip-1">Untergruppe 1</div>
+          <div class="chip" data-v="2" onclick="pickUG(this)" id="ug-chip-2">Untergruppe 2</div>
         </div>
       </div>
       <div class="divider"></div>
@@ -536,12 +536,14 @@ function pickPosten(el, silent) {
     const ug1=document.querySelector('#ug-chips [data-v="1"]');
     if(ug1){ ug1.classList.add('on'); selUG='1'; }
   }
+  updateUGChips();
   if(!silent){ savesel(); renderList(); }
 }
 function pickGruppe(el, silent) {
   document.querySelectorAll('#gruppe-chips .chip').forEach(c=>c.classList.remove('on'));
   el.classList.add('on');
   selG = el.dataset.v;
+  updateUGChips();
   if(!silent){ savesel(); renderList(); if(selP==='schnellauf'&&swStopped!==null) swBuildAssign(); }
 }
 function pickKlasse(el, silent) {
@@ -549,6 +551,18 @@ function pickKlasse(el, silent) {
   el.classList.add('on');
   selK = el.dataset.v;
   if(!silent){ savesel(); renderList(); if(selP==='schnellauf'&&swStopped!==null) swBuildAssign(); }
+}
+// UG colour names: Gruppe A → 1=Rot, 2=Gelb | Gruppe B → 1=Blau, 2=Grün
+function ugName(gruppe, ug) {
+  if(gruppe==='A') return ug==='1' ? '🔴 Rot' : '🟡 Gelb';
+  if(gruppe==='B') return ug==='1' ? '🔵 Blau' : '🟢 Grün';
+  return 'Untergruppe '+ug;
+}
+function updateUGChips() {
+  const c1 = document.getElementById('ug-chip-1');
+  const c2 = document.getElementById('ug-chip-2');
+  if(c1) c1.textContent = ugName(selG, '1');
+  if(c2) c2.textContent = ugName(selG, '2');
 }
 function pickUG(el, silent) {
   document.querySelectorAll('#ug-chips .chip').forEach(c=>c.classList.remove('on'));
@@ -577,8 +591,9 @@ function renderList() {
 
   if(!kids.length){
     list.innerHTML=''; empty.classList.remove('hidden');
+    const ugLabel = (isAL && selUG) ? ugName(selG, selUG) : `Gruppe ${selG}`;
     document.getElementById('sus-empty-msg').textContent=
-      `Keine SuS in Gruppe ${selG}, ${selK}. Klasse gefunden.`;
+      `Keine SuS in ${ugLabel}, ${selK}. Klasse gefunden.`;
     prog.textContent=''; return;
   }
 
@@ -613,7 +628,7 @@ function renderList() {
 <div class="counter-item ${has?'done':''}" id="si${i}">
   <div class="counter-info">
     <div class="counter-name">${esc(s.anzeige)}</div>
-    <div class="counter-meta">${esc(s.klasse)} · ${s.g==='m'?'Knabe':'Mädchen'}</div>
+    <div class="counter-meta">${esc(s.klasse)} · ${s.g==='m'?'Knabe':'Mädchen'} · ${ugName(selG, selUG)}</div>
   </div>
   <div class="counter-ctrl">
     <button class="cbtn minus" onclick="counterDec(${i},'${k}','${esc(s.anzeige)}')">−</button>
@@ -626,6 +641,7 @@ function renderList() {
     onkeydown="if(event.key==='Enter')commitCounter(${i},'${k}','${esc(s.anzeige)}')">
   <span class="unit">Runden</span>
   <button class="btn btn-p" style="padding:7px 11px" onclick="commitCounter(${i},'${k}','${esc(s.anzeige)}')">OK</button>
+  ${has?`<button class="btn-del" title="Wert löschen" onclick="deleteVal(${i},'${k}','${esc(s.anzeige)}',false)">🗑</button>`:''}
 </div>`;
     }
     if(isWS){
