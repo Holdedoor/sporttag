@@ -422,15 +422,19 @@ const POSTEN = {
 };
 
 // ============ LOGIN ============
-function doLogin() {
+async function doLogin() {
   const pw = document.getElementById('login-pw').value;
   if (pw === PASSWORD) {
     document.getElementById('login-overlay').classList.add('hidden');
     document.getElementById('main-app').classList.remove('hidden');
     loadFromStorage();
-    loadSchuelerFromSupabase();
-    loadFromSupabase();
-    // Restore saved posten/gruppe/klasse
+    showPage('erfassung');
+    // Wait for both susList and messwerte to load before restoring selection
+    await Promise.all([
+      loadSchuelerFromSupabase(),
+      loadFromSupabase(),
+    ]);
+    // Restore saved posten/gruppe/klasse AFTER data is loaded
     const saved = getSavedPostenSetup();
     if (saved.posten) {
       const btn = document.querySelector(`#posten-tabs [data-val="${saved.posten}"]`);
@@ -440,7 +444,6 @@ function doLogin() {
       const btn = document.querySelector(`#gruppe-tabs [data-val="${saved.gruppe}"]`);
       if (btn) selectGruppe(btn, true);
     }
-    // Restore saved klasse, or auto-select first
     if (saved.klasse) {
       const klBtn = document.querySelector(`.klassen-tab[data-kl="${saved.klasse}"]`);
       if (klBtn) { selectKlasse(klBtn); }
@@ -454,7 +457,6 @@ function doLogin() {
       if (document.getElementById('page-rangliste').classList.contains('active')) buildRangliste();
       refreshSusList();
     }, 30000);
-    showPage('erfassung');
   } else {
     document.getElementById('login-error').classList.add('show');
     document.getElementById('login-pw').value = '';
