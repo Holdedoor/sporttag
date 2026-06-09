@@ -152,6 +152,27 @@ body{font-family:system-ui,-apple-system,sans-serif;background:var(--bg);color:v
 .sw-kid-name{font-size:13px;font-weight:500}
 .sw-kid-val{font-size:12px;color:var(--tx3)}
 
+/* ── UNTERGRUPPE / RUNDENZÄHLER ── */
+#ug-row{display:none;border-top:1px solid var(--bdr);padding-top:12px;margin-top:4px}
+#ug-row.on{display:block}
+.counter-item{display:flex;align-items:center;gap:0;border:1.5px solid var(--bdr);border-radius:8px;margin-bottom:7px;background:var(--sur);overflow:hidden;transition:border-color .14s}
+.counter-item.done{border-color:var(--g3);background:var(--g1)}
+.counter-info{flex:1;padding:9px 12px;min-width:0}
+.counter-name{font-size:14px;font-weight:500}
+.counter-meta{font-size:11px;color:var(--tx3);margin-top:1px}
+.counter-ctrl{display:flex;align-items:center;gap:0;flex-shrink:0}
+.cbtn{width:42px;height:52px;border:none;background:none;font-size:20px;cursor:pointer;color:var(--g7);display:flex;align-items:center;justify-content:center;border-left:1px solid var(--bdr);transition:background .12s;flex-shrink:0}
+.cbtn:hover{background:var(--g1)}
+.cbtn.minus{color:var(--a3)}
+.cbtn.minus:hover{background:var(--a1)}
+.counter-val{font-size:18px;font-weight:700;color:var(--g7);min-width:38px;text-align:center;border-left:1px solid var(--bdr);padding:0 4px;height:52px;display:flex;align-items:center;justify-content:center;cursor:pointer;user-select:none}
+.counter-val.zero{color:var(--tx3);font-weight:400;font-size:14px}
+/* manual input for counter */
+.counter-manual{display:none;padding:8px 12px;border-top:1px solid var(--bdr);align-items:center;gap:8px;background:#fff}
+.counter-manual.on{display:flex}
+.counter-manual input{flex:1;padding:7px 10px;border:1.5px solid var(--bdr);border-radius:7px;font-size:15px;background:var(--bg)}
+.counter-manual input:focus{outline:none;border-color:var(--g3)}
+
 /* ── MISC ── */
 .hidden{display:none!important}
 .txt-c{text-align:center}
@@ -211,6 +232,13 @@ body{font-family:system-ui,-apple-system,sans-serif;background:var(--bg);color:v
       <div class="chips" id="gruppe-chips">
         <div class="chip" data-v="A" onclick="pickGruppe(this)">Gruppe A</div>
         <div class="chip" data-v="B" onclick="pickGruppe(this)">Gruppe B</div>
+      </div>
+      <div id="ug-row">
+        <div class="sec-label" style="margin-bottom:6px">Untergruppe</div>
+        <div class="chips" id="ug-chips">
+          <div class="chip" data-v="1" onclick="pickUG(this)">Untergruppe 1</div>
+          <div class="chip" data-v="2" onclick="pickUG(this)">Untergruppe 2</div>
+        </div>
       </div>
       <div class="divider"></div>
       <div class="flex-bw" style="margin-bottom:6px">
@@ -336,6 +364,7 @@ let data   = {};   // key→value  (key = "posten|js|gruppe|anzeige")
 let selP   = null; // selected posten
 let selG   = null; // selected gruppe
 let selK   = null; // selected klasse (jahrgangsstufe digit)
+let selUG  = null; // selected untergruppe (1 or 2, only for Ausdauerlauf)
 let openI  = null; // open input index
 let fStufe = 'all';
 let fGesch = 'all';
@@ -458,6 +487,7 @@ async function login() {
   if(s.gruppe){ const el=document.querySelector(`#gruppe-chips [data-v="${s.gruppe}"]`); if(el) pickGruppe(el,true); }
   if(s.klasse){ const el=document.querySelector(`#klasse-chips [data-v="${s.klasse}"]`); if(el) pickKlasse(el,true); }
   else { const el=document.querySelector('#klasse-chips .chip'); if(el) pickKlasse(el,true); }
+  if(s.ug && s.posten==='ausdauerlauf'){ const el=document.querySelector(`#ug-chips [data-v="${s.ug}"]`); if(el) pickUG(el,true); }
 
   renderList();
 
@@ -471,7 +501,7 @@ async function login() {
 document.getElementById('lpw').focus();
 
 function getSaved(){ try{ return JSON.parse(localStorage.getItem('st_sel')||'{}'); }catch(_){ return {}; } }
-function savesel(){ try{ localStorage.setItem('st_sel', JSON.stringify({posten:selP,gruppe:selG,klasse:selK})); }catch(_){} }
+function savesel(){ try{ localStorage.setItem('st_sel', JSON.stringify({posten:selP,gruppe:selG,klasse:selK,ug:selUG})); }catch(_){} }
 
 // ═══════════════════════════════════════
 // SELECTORS
@@ -481,6 +511,15 @@ function pickPosten(el, silent) {
   el.classList.add('on');
   selP = el.dataset.v;
   swShow(selP==='schnellauf');
+  // Show Untergruppe selector only for Ausdauerlauf
+  const isAL = selP==='ausdauerlauf';
+  document.getElementById('ug-row').classList.toggle('on', isAL);
+  if(!isAL){ selUG=null; }
+  else if(!selUG){
+    // Auto-select UG1
+    const ug1=document.querySelector('#ug-chips [data-v="1"]');
+    if(ug1){ ug1.classList.add('on'); selUG='1'; }
+  }
   if(!silent){ savesel(); renderList(); }
 }
 function pickGruppe(el, silent) {
@@ -494,6 +533,12 @@ function pickKlasse(el, silent) {
   el.classList.add('on');
   selK = el.dataset.v;
   if(!silent){ savesel(); renderList(); if(selP==='schnellauf'&&swStopped!==null) swBuildAssign(); }
+}
+function pickUG(el, silent) {
+  document.querySelectorAll('#ug-chips .chip').forEach(c=>c.classList.remove('on'));
+  el.classList.add('on');
+  selUG = el.dataset.v;
+  if(!silent){ savesel(); renderList(); }
 }
 
 // ═══════════════════════════════════════
@@ -525,17 +570,48 @@ function renderList() {
   openI = null;
 
   const isWS = selP==='weitsprung';
+  const isAL = selP==='ausdauerlauf';
   const pInfo = POSTEN[selP];
 
+  // For Ausdauerlauf: split kids alphabetically into UG1 (first half) and UG2 (second half)
+  let displayKids = kids;
+  if(isAL && selUG) {
+    const sorted = [...kids].sort((a,b)=>a.anzeige.localeCompare(b.anzeige));
+    const half = Math.ceil(sorted.length / 2);
+    displayKids = selUG==='1' ? sorted.slice(0, half) : sorted.slice(half);
+  }
+
   // Progress
-  const done = kids.filter(s=>{
+  const done = displayKids.filter(s=>{
     const k=mk(selP,selK,selG,s.anzeige);
     return isWS ? (getBest(data[k+'|jumps'])!==null) : (data[k]!==undefined);
   }).length;
-  prog.textContent=`${done} / ${kids.length} erfasst`;
+  prog.textContent=`${done} / ${displayKids.length} erfasst`;
 
-  list.innerHTML = kids.map((s,i)=>{
+  list.innerHTML = displayKids.map((s,i)=>{
     const k = mk(selP, selK, selG, s.anzeige);
+    if(isAL){
+      const val = data[k]!==undefined ? data[k] : 0;
+      const has = data[k]!==undefined && data[k]>0;
+      return `
+<div class="counter-item ${has?'done':''}" id="si${i}">
+  <div class="counter-info">
+    <div class="counter-name">${esc(s.anzeige)}</div>
+    <div class="counter-meta">${esc(s.klasse)} · ${s.g==='m'?'Knabe':'Mädchen'}</div>
+  </div>
+  <div class="counter-ctrl">
+    <button class="cbtn minus" onclick="counterDec(${i},'${k}','${esc(s.anzeige)}')">−</button>
+    <div class="counter-val ${val===0?'zero':''}" id="cv${i}" onclick="toggleCounterManual(${i})">${val===0?'–':val}</div>
+    <button class="cbtn" onclick="counterInc(${i},'${k}','${esc(s.anzeige)}')">+</button>
+  </div>
+</div>
+<div class="counter-manual" id="cm${i}">
+  <input type="number" id="cn${i}" min="0" step="1" placeholder="Runden" value="${val||''}"
+    onkeydown="if(event.key==='Enter')commitCounter(${i},'${k}','${esc(s.anzeige)}')">
+  <span class="unit">Runden</span>
+  <button class="btn btn-p" style="padding:7px 11px" onclick="commitCounter(${i},'${k}','${esc(s.anzeige)}')">OK</button>
+</div>`;
+    }
     if(isWS){
       const jumps = data[k+'|jumps']||[null,null,null];
       const best  = getBest(jumps);
@@ -652,8 +728,14 @@ function getBest(jumps) {
 function updateProgress() {
   if(!selP||!selG||!selK) return;
   const isWS=selP==='weitsprung';
-  const kids=sus.filter(s=>s.js===selK&&s.gruppe===selG);
-  const done=kids.filter(s=>{ const k=mk(selP,selK,selG,s.anzeige); return isWS?(getBest(data[k+'|jumps'])!==null):(data[k]!==undefined); }).length;
+  const isAL=selP==='ausdauerlauf';
+  let kids=sus.filter(s=>s.js===selK&&s.gruppe===selG);
+  if(isAL && selUG){
+    const sorted=[...kids].sort((a,b)=>a.anzeige.localeCompare(b.anzeige));
+    const half=Math.ceil(sorted.length/2);
+    kids=selUG==='1'?sorted.slice(0,half):sorted.slice(half);
+  }
+  const done=kids.filter(s=>{ const k=mk(selP,selK,selG,s.anzeige); return isWS?(getBest(data[k+'|jumps'])!==null):(data[k]!==undefined&&data[k]>0); }).length;
   document.getElementById('progress').textContent=`${done} / ${kids.length} erfasst`;
 }
 
@@ -881,6 +963,53 @@ function expStufe(js) {
   XLSX.utils.book_append_sheet(wb,XLSX.utils.aoa_to_sheet(buildRankSheet([js])),'Rangliste');
   XLSX.utils.book_append_sheet(wb,XLSX.utils.aoa_to_sheet(buildDetailSheet(kids,js)),'Messwerte');
   XLSX.writeFile(wb,`Sporttag_Stufe_${js}.xlsx`);
+}
+
+// ═══════════════════════════════════════
+// RUNDENZÄHLER (Ausdauerlauf)
+// ═══════════════════════════════════════
+function counterInc(i, k, anzeige) {
+  const cur = data[k]!==undefined ? data[k] : 0;
+  const nv = cur + 1;
+  data[k] = nv;
+  updateCounterDisplay(i, nv);
+  saveVal('ausdauerlauf', selK, selG, anzeige, nv, null);
+}
+function counterDec(i, k, anzeige) {
+  const cur = data[k]!==undefined ? data[k] : 0;
+  if(cur<=0) return;
+  const nv = cur - 1;
+  data[k] = nv;
+  updateCounterDisplay(i, nv);
+  saveVal('ausdauerlauf', selK, selG, anzeige, nv, null);
+}
+function toggleCounterManual(i) {
+  const cm = document.getElementById('cm'+i);
+  cm.classList.toggle('on');
+  if(cm.classList.contains('on')){
+    const inp=document.getElementById('cn'+i);
+    inp.focus(); inp.select();
+  }
+}
+function commitCounter(i, k, anzeige) {
+  const v = parseInt(document.getElementById('cn'+i).value);
+  if(isNaN(v)||v<0) return;
+  data[k] = v;
+  updateCounterDisplay(i, v);
+  document.getElementById('cm'+i).classList.remove('on');
+  saveVal('ausdauerlauf', selK, selG, anzeige, v, null);
+}
+function updateCounterDisplay(i, v) {
+  const el = document.getElementById('cv'+i);
+  const si = document.getElementById('si'+i);
+  if(!el||!si) return;
+  el.textContent = v>0 ? v : '–';
+  el.className = 'counter-val' + (v===0?' zero':'');
+  si.className = 'counter-item' + (v>0?' done':'');
+  // update manual input value too
+  const inp=document.getElementById('cn'+i);
+  if(inp) inp.value=v||'';
+  updateProgress();
 }
 
 // ═══════════════════════════════════════
