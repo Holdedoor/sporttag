@@ -317,6 +317,13 @@
 <div id="page-erfassung" class="page active">
 
   <div class="card">
+    <div style="display:flex;align-items:center;gap:10px;padding:10px 14px;background:var(--green-xlight);border-radius:8px;border:1px solid var(--green-light);margin-bottom:14px;">
+      <span style="font-size:22px;" id="erfassung-posten-icon">–</span>
+      <div>
+        <div style="font-size:15px;font-weight:700;color:var(--green);" id="erfassung-posten-label">–</div>
+        <div style="font-size:12px;color:var(--green-mid);" id="erfassung-gruppe-label">–</div>
+      </div>
+    </div>
     <div class="flex-between mb-0">
       <div class="card-title mb-0"><span class="dot"></span>Klasse wählen</div>
       <span class="text-xs" id="sus-progress"></span>
@@ -337,8 +344,8 @@
 
   <div id="erfassung-no-sus" class="card text-center hidden">
     <div style="font-size:28px;margin-bottom:8px;">📋</div>
-    <div style="font-weight:600;margin-bottom:6px;">Keine SuS in dieser Klasse</div>
-    <div class="text-sm">Bitte eine andere Klasse wählen.</div>
+    <div style="font-weight:600;margin-bottom:6px;">Keine SuS in dieser Gruppe / Klasse</div>
+    <div class="text-sm">Für diese Klasse sind keine SuS in deiner Gruppe erfasst.</div>
   </div>
 
 </div>
@@ -532,13 +539,20 @@ function updateNavContext() {
   const p = POSTEN[selectedPosten];
   const label = p ? `${p.icon} ${p.label} · Gruppe ${selectedGruppe}` : '–';
   document.getElementById('nav-context').textContent = label;
+  // Update erfassung header
+  const icon = document.getElementById('erfassung-posten-icon');
+  const lbl  = document.getElementById('erfassung-posten-label');
+  const grp  = document.getElementById('erfassung-gruppe-label');
+  if (p && icon) icon.textContent = p.icon;
+  if (p && lbl)  lbl.textContent  = p.label;
+  if (grp) grp.textContent = `Gruppe ${selectedGruppe}`;
 }
 
 // ============ SCHÜLERLISTE VON SUPABASE ============
 async function loadSchuelerFromSupabase() {
   setSusLoadStatus('loading', 'Schülerliste wird geladen…', '');
   try {
-    const rows = await sbFetch('schueler?select=name,klasse,geschlecht&order=klasse,name');
+    const rows = await sbFetch('schueler?select=name,klasse,geschlecht,gruppe&order=klasse,name');
     if (!rows || !rows.length) {
       setSusLoadStatus('error', 'Keine Schülerliste gefunden', 'Bitte zuerst mit dem Upload-Tool hochladen.');
       checkSetupReady(); return;
@@ -547,6 +561,7 @@ async function loadSchuelerFromSupabase() {
       name: String(r.name||'').trim(),
       klasse: String(r.klasse||'').trim(),
       geschlecht: String(r.geschlecht||'').trim(),
+      gruppe: String(r.gruppe||'').trim().toUpperCase(),
     }));
     const byKlasse = {};
     susList.forEach(s => { byKlasse[s.klasse] = (byKlasse[s.klasse]||0)+1; });
@@ -650,7 +665,11 @@ function selectKlasse(el) {
 
 function loadSusList() {
   if (!selectedPosten || !selectedGruppe || !selectedKlasse) return;
-  const kids = susList.filter(s => s.klasse === selectedKlasse);
+  // Filter by klasse AND gruppe (if gruppe is set in susList, otherwise show all)
+  const kids = susList.filter(s =>
+    s.klasse === selectedKlasse &&
+    (s.gruppe === '' || s.gruppe === selectedGruppe)
+  );
   const card = document.getElementById('sus-list-card');
   const noSus = document.getElementById('erfassung-no-sus');
 

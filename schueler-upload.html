@@ -68,7 +68,7 @@
   <div id="preview-section" class="hidden">
     <div class="stat-row" id="stats"></div>
     <div style="max-height:220px;overflow-y:auto;margin-bottom:16px;">
-      <table><thead><tr><th>Name</th><th>Klasse</th><th>Geschlecht</th></tr></thead>
+      <table><thead><tr><th>Name</th><th>Klasse</th><th>Geschlecht</th><th>Gruppe</th></tr></thead>
       <tbody id="preview-body"></tbody></table>
     </div>
     <div id="progress-wrap" class="hidden">
@@ -146,10 +146,12 @@ function parseRows(rows) {
   const geschCol  = findCol(sample, ['geschlecht','gender','sex','m/w']);
   if (!nameCol || !klasseCol) { alert('Spalten «Name» und «Klasse» nicht gefunden.'); return; }
 
+  const gruppeCol = findCol(sample, ['gruppe','group','grp']);
   parsedRows = rows.map(r => ({
     name: String(r[nameCol]||'').trim(),
     klasse: String(r[klasseCol]||'').trim().replace(/[^1-6]/g,''),
     geschlecht: normalizeG(String(r[geschCol]||'')),
+    gruppe: gruppeCol ? String(r[gruppeCol]||'').trim().toUpperCase() : '',
   })).filter(s => s.name && s.klasse);
 
   showPreview();
@@ -183,7 +185,8 @@ function showPreview() {
       <td>${esc(s.name)}</td>
       <td><span class="badge badge-g">${s.klasse}. Kl.</span></td>
       <td><span class="badge ${s.geschlecht==='m'?'badge-m':'badge-f'}">${s.geschlecht}</span></td>
-    </tr>`).join('') + (parsedRows.length > 30 ? `<tr><td colspan="3" style="color:var(--text-3);text-align:center;padding:8px">… und ${parsedRows.length-30} weitere</td></tr>` : '');
+      <td><span class="badge badge-g">${s.gruppe || '–'}</span></td>
+    </tr>`).join('') + (parsedRows.length > 30 ? `<tr><td colspan="4" style="color:var(--text-3);text-align:center;padding:8px">… und ${parsedRows.length-30} weitere</td></tr>` : '');
 }
 
 async function doUpload() {
