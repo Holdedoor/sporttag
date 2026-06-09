@@ -135,6 +135,23 @@ body{font-family:system-ui,-apple-system,sans-serif;background:var(--bg);color:v
 .pbar{height:100%;background:var(--g3);border-radius:3px;transition:width .3s}
 .plbl{font-size:12px;color:var(--tx3);text-align:center;margin-bottom:12px}
 
+/* ── STOPWATCH ── */
+#stopwatch-card{display:none}
+#stopwatch-card.on{display:block}
+.sw-display{font-size:56px;font-weight:700;letter-spacing:-.02em;text-align:center;color:var(--g7);font-variant-numeric:tabular-nums;padding:12px 0 8px;line-height:1}
+.sw-sub{font-size:13px;color:var(--tx3);text-align:center;margin-bottom:14px}
+.sw-btns{display:flex;gap:8px;justify-content:center;margin-bottom:14px}
+.sw-result{padding:12px 14px;background:var(--g1);border:1px solid var(--g3);border-radius:8px;margin-bottom:12px;display:none}
+.sw-result.on{display:block}
+.sw-result-label{font-size:12px;color:var(--g7);font-weight:600;margin-bottom:4px}
+.sw-result-time{font-size:22px;font-weight:700;color:var(--g7);margin-bottom:8px}
+.sw-assign{display:flex;flex-direction:column;gap:6px}
+.sw-kid{display:flex;align-items:center;justify-content:space-between;padding:9px 12px;border-radius:7px;border:1.5px solid var(--bdr);background:var(--sur);cursor:pointer;transition:all .14s}
+.sw-kid:hover{border-color:var(--g3);background:var(--g1)}
+.sw-kid.assigned{border-color:var(--g3);background:var(--g1)}
+.sw-kid-name{font-size:13px;font-weight:500}
+.sw-kid-val{font-size:12px;color:var(--tx3)}
+
 /* ── MISC ── */
 .hidden{display:none!important}
 .txt-c{text-align:center}
@@ -216,6 +233,26 @@ body{font-family:system-ui,-apple-system,sans-serif;background:var(--bg);color:v
       <div class="tx-sm" id="sus-empty-msg">Posten, Gruppe und Klasse wählen.</div>
     </div>
 
+    <!-- STOPWATCH (only visible for Schnellauf) -->
+    <div id="stopwatch-card" class="card">
+      <div class="sec-label" style="margin-bottom:4px">⚡ Stoppuhr</div>
+      <div class="sw-display" id="sw-display">0.000</div>
+      <div class="sw-sub" id="sw-sub">Bereit</div>
+      <div class="sw-btns">
+        <button class="btn btn-p" id="sw-btn-start" onclick="swStart()" style="min-width:100px">▶ Start</button>
+        <button class="btn btn-g" id="sw-btn-stop"  onclick="swStop()"  style="min-width:100px" disabled>⏹ Stop</button>
+        <button class="btn btn-g" id="sw-btn-reset" onclick="swReset()" style="padding:10px 14px" disabled>↺</button>
+      </div>
+      <div class="sw-result" id="sw-result">
+        <div class="sw-result-label">Gestoppte Zeit – wem zuteilen?</div>
+        <div class="sw-result-time" id="sw-result-time"></div>
+        <div class="sw-assign" id="sw-assign"></div>
+      </div>
+    </div>
+
+    <div id="sus-list-label" class="hidden" style="font-size:11px;font-weight:700;color:var(--tx3);text-transform:uppercase;letter-spacing:.06em;padding:0 2px 6px">
+      Manuelle Eingabe
+    </div>
     <div id="sus-list"></div>
   </div>
 
@@ -417,7 +454,7 @@ async function login() {
 
   // Restore last selection
   const s = getSaved();
-  if(s.posten){ const el=document.querySelector(`#posten-chips [data-v="${s.posten}"]`); if(el) pickPosten(el,true); }
+  if(s.posten){ const el=document.querySelector(`#posten-chips [data-v="${s.posten}"]`); if(el){ pickPosten(el,true); swShow(s.posten==='schnellauf'); } }
   if(s.gruppe){ const el=document.querySelector(`#gruppe-chips [data-v="${s.gruppe}"]`); if(el) pickGruppe(el,true); }
   if(s.klasse){ const el=document.querySelector(`#klasse-chips [data-v="${s.klasse}"]`); if(el) pickKlasse(el,true); }
   else { const el=document.querySelector('#klasse-chips .chip'); if(el) pickKlasse(el,true); }
@@ -443,19 +480,20 @@ function pickPosten(el, silent) {
   document.querySelectorAll('#posten-chips .chip').forEach(c=>c.classList.remove('on'));
   el.classList.add('on');
   selP = el.dataset.v;
+  swShow(selP==='schnellauf');
   if(!silent){ savesel(); renderList(); }
 }
 function pickGruppe(el, silent) {
   document.querySelectorAll('#gruppe-chips .chip').forEach(c=>c.classList.remove('on'));
   el.classList.add('on');
   selG = el.dataset.v;
-  if(!silent){ savesel(); renderList(); }
+  if(!silent){ savesel(); renderList(); if(selP==='schnellauf'&&swStopped!==null) swBuildAssign(); }
 }
 function pickKlasse(el, silent) {
   document.querySelectorAll('#klasse-chips .chip').forEach(c=>c.classList.remove('on'));
   el.classList.add('on');
   selK = el.dataset.v;
-  if(!silent){ savesel(); renderList(); }
+  if(!silent){ savesel(); renderList(); if(selP==='schnellauf'&&swStopped!==null) swBuildAssign(); }
 }
 
 // ═══════════════════════════════════════
@@ -843,6 +881,106 @@ function expStufe(js) {
   XLSX.utils.book_append_sheet(wb,XLSX.utils.aoa_to_sheet(buildRankSheet([js])),'Rangliste');
   XLSX.utils.book_append_sheet(wb,XLSX.utils.aoa_to_sheet(buildDetailSheet(kids,js)),'Messwerte');
   XLSX.writeFile(wb,`Sporttag_Stufe_${js}.xlsx`);
+}
+
+// ═══════════════════════════════════════
+// STOPWATCH
+// ═══════════════════════════════════════
+let swRunning  = false;
+let swStart_t  = 0;
+let swElapsed  = 0;
+let swRaf      = null;
+let swStopped  = null; // last stopped time in seconds
+
+function swTick() {
+  if(!swRunning) return;
+  swElapsed = (performance.now() - swStart_t) / 1000;
+  swSetDisplay(swElapsed);
+  swRaf = requestAnimationFrame(swTick);
+}
+
+function swSetDisplay(secs) {
+  const s = secs.toFixed(3);
+  document.getElementById('sw-display').textContent = s;
+}
+
+function swStart() {
+  if(swRunning) return;
+  swRunning = true;
+  swStart_t = performance.now() - swElapsed*1000;
+  swRaf = requestAnimationFrame(swTick);
+  document.getElementById('sw-btn-start').disabled = true;
+  document.getElementById('sw-btn-stop').disabled  = false;
+  document.getElementById('sw-btn-reset').disabled = true;
+  document.getElementById('sw-sub').textContent = '⏱ Läuft…';
+  document.getElementById('sw-result').classList.remove('on');
+}
+
+function swStop() {
+  if(!swRunning) return;
+  cancelAnimationFrame(swRaf);
+  swRunning = false;
+  swElapsed = (performance.now() - swStart_t) / 1000;
+  swStopped = Math.round(swElapsed * 100) / 100; // round to 2 decimals
+  swSetDisplay(swStopped);
+  document.getElementById('sw-btn-start').disabled = false;
+  document.getElementById('sw-btn-stop').disabled  = true;
+  document.getElementById('sw-btn-reset').disabled = false;
+  document.getElementById('sw-sub').textContent = 'Gestoppt';
+  // Show assign panel
+  document.getElementById('sw-result-time').textContent = swStopped + ' s';
+  document.getElementById('sw-result').classList.add('on');
+  swBuildAssign();
+}
+
+function swReset() {
+  cancelAnimationFrame(swRaf);
+  swRunning = false;
+  swElapsed = 0;
+  swStopped = null;
+  swSetDisplay(0);
+  document.getElementById('sw-btn-start').disabled = false;
+  document.getElementById('sw-btn-stop').disabled  = true;
+  document.getElementById('sw-btn-reset').disabled = true;
+  document.getElementById('sw-sub').textContent = 'Bereit';
+  document.getElementById('sw-result').classList.remove('on');
+}
+
+function swBuildAssign() {
+  if(!selP||!selG||!selK) return;
+  const kids = sus.filter(s=>s.js===selK&&s.gruppe===selG)
+                   .sort((a,b)=>a.anzeige.localeCompare(b.anzeige));
+  const container = document.getElementById('sw-assign');
+  container.innerHTML = kids.map(s=>{
+    const k = mk('schnellauf', selK, selG, s.anzeige);
+    const existing = data[k];
+    const hasDone = existing !== undefined;
+    return `<div class="sw-kid ${hasDone?'assigned':''}" onclick="swAssign('${k}','${esc(s.anzeige)}')">
+      <span class="sw-kid-name">${esc(s.anzeige)}</span>
+      <span class="sw-kid-val">${hasDone ? existing+' s ✓' : '→ zuteilen'}</span>
+    </div>`;
+  }).join('');
+}
+
+function swAssign(k, anzeige) {
+  if(swStopped===null) return;
+  data[k] = swStopped;
+  // Save to Supabase
+  saveVal('schnellauf', selK, selG, anzeige, swStopped, null);
+  // Update assign list
+  swBuildAssign();
+  // Update main sus list
+  renderList();
+  // Reset stopwatch for next runner
+  swReset();
+}
+
+function swShow(show) {
+  const card = document.getElementById('stopwatch-card');
+  const lbl  = document.getElementById('sus-list-label');
+  if(show){ card.classList.add('on'); lbl.classList.remove('hidden'); }
+  else    { card.classList.remove('on'); lbl.classList.add('hidden'); }
+  if(!show) swReset();
 }
 
 // ═══════════════════════════════════════
