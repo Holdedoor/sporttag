@@ -500,14 +500,17 @@ async function loadSchuelerFromSupabase() {
       checkSetupReady(); return;
     }
     susList = rows.map(r => ({
+      vorname: String(r.vorname||'').trim(),
       name: String(r.name||'').trim(),
+      anzeige: (String(r.vorname||'').trim() + ' ' + String(r.name||'').trim()).trim(),
       klasse: String(r.klasse||'').trim(),
-      geschlecht: String(r.geschlecht||'').trim(),
+      jahrgangsstufe: String(r.jahrgangsstufe||'').trim().replace(/[^1-9]/g,'').substring(0,1),
+      geschlecht: String(r.geschlecht||'').trim().toLowerCase(),
       gruppe: String(r.gruppe||'').trim().toUpperCase(),
     }));
     const byKlasse = {};
     susList.forEach(s => { byKlasse[s.klasse] = (byKlasse[s.klasse]||0)+1; });
-    const sub = Object.entries(byKlasse).sort().map(([k,v]) => `${k}. Kl.: ${v}`).join(' · ');
+    const sub = Object.entries(byKlasse).sort().map(([k,v]) => `${k}: ${v}`).join(' · ');
     setSusLoadStatus('ok', `${susList.length} Schülerinnen & Schüler geladen`, sub);
     try { localStorage.setItem('sporttag_sus', JSON.stringify(susList)); } catch(e) {}
     checkSetupReady();
