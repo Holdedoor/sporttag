@@ -968,21 +968,32 @@ function expStufe(js) {
 // ═══════════════════════════════════════
 // RUNDENZÄHLER (Ausdauerlauf)
 // ═══════════════════════════════════════
+
+// Debounce timers per key – prevents race conditions when clicking fast
+const counterTimers = {};
+
 function counterInc(i, k, anzeige) {
-  const cur = data[k]!==undefined ? data[k] : 0;
-  const nv = cur + 1;
-  data[k] = nv;
-  updateCounterDisplay(i, nv);
-  saveVal('ausdauerlauf', selK, selG, anzeige, nv, null);
+  data[k] = (data[k]!==undefined ? data[k] : 0) + 1;
+  updateCounterDisplay(i, data[k]);
+  scheduleCounterSave(k, anzeige);
 }
 function counterDec(i, k, anzeige) {
-  const cur = data[k]!==undefined ? data[k] : 0;
-  if(cur<=0) return;
-  const nv = cur - 1;
-  data[k] = nv;
-  updateCounterDisplay(i, nv);
-  saveVal('ausdauerlauf', selK, selG, anzeige, nv, null);
+  if(!data[k] || data[k]<=0) return;
+  data[k] = data[k] - 1;
+  updateCounterDisplay(i, data[k]);
+  scheduleCounterSave(k, anzeige);
 }
+
+// Wait 800ms after last click before saving – always reads latest data[k]
+function scheduleCounterSave(k, anzeige) {
+  if(counterTimers[k]) clearTimeout(counterTimers[k]);
+  counterTimers[k] = setTimeout(() => {
+    const v = data[k]!==undefined ? data[k] : 0;
+    saveVal('ausdauerlauf', selK, selG, anzeige, v, null);
+    delete counterTimers[k];
+  }, 800);
+}
+
 function toggleCounterManual(i) {
   const cm = document.getElementById('cm'+i);
   cm.classList.toggle('on');
@@ -997,6 +1008,7 @@ function commitCounter(i, k, anzeige) {
   data[k] = v;
   updateCounterDisplay(i, v);
   document.getElementById('cm'+i).classList.remove('on');
+  // Manual commit saves immediately (no debounce needed)
   saveVal('ausdauerlauf', selK, selG, anzeige, v, null);
 }
 function updateCounterDisplay(i, v) {
@@ -1006,7 +1018,6 @@ function updateCounterDisplay(i, v) {
   el.textContent = v>0 ? v : '–';
   el.className = 'counter-val' + (v===0?' zero':'');
   si.className = 'counter-item' + (v>0?' done':'');
-  // update manual input value too
   const inp=document.getElementById('cn'+i);
   if(inp) inp.value=v||'';
   updateProgress();
