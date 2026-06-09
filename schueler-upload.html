@@ -199,7 +199,7 @@ function parseRows(rows) {
     return {
       vorname: ersterVorname,
       name,
-      anzeige,
+      anzeige,          // local only, not sent to DB
       klasse,
       jahrgangsstufe: js,
       geschlecht: normalizeG(String(r[geschCol]||'')),
@@ -258,7 +258,7 @@ async function doUpload() {
     // Upload in batches of 50
     const batchSize = 50;
     for (let i = 0; i < parsedRows.length; i += batchSize) {
-      const batch = parsedRows.slice(i, i + batchSize);
+      const batch = parsedRows.slice(i, i + batchSize).map(({anzeige, ...dbRow}) => dbRow);
       await sbFetch('schueler', {
         method: 'POST',
         prefer: 'return=minimal',
