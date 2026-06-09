@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Schülerliste hochladen</title>
+<style>
+  :root {
+    --green: #2D6A4F; --green-light: #52B788; --green-xlight: #D8F3DC;
+    --green-mid: #40916C; --amber: #E9762B; --amber-light: #FDE8D5;
+    --bg: #F7F9F6; --surface: #fff; --border: #E0E8DF;
+    --text: #1A2E1E; --text-2: #4A6350; --text-3: #7A9880;
+    --radius: 12px;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: system-ui, sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; display: flex; align-items: flex-start; justify-content: center; padding: 32px 16px; }
+  .box { background: var(--surface); border-radius: 16px; border: 1px solid var(--border); padding: 32px; max-width: 480px; width: 100%; box-shadow: 0 2px 20px rgba(45,106,79,0.08); }
+  h1 { font-size: 20px; font-weight: 700; margin-bottom: 4px; }
+  .sub { font-size: 13px; color: var(--text-3); margin-bottom: 24px; }
+  .info { padding: 12px 14px; border-radius: 8px; font-size: 13px; line-height: 1.6; margin-bottom: 16px; }
+  .info.amber { background: var(--amber-light); color: #7A3A0A; border: 1px solid #F4B47A; }
+  .info.green { background: var(--green-xlight); color: var(--green); border: 1px solid var(--green-light); }
+  .info.red { background: #FDE8E8; color: #C0392B; border: 1px solid #f5c0c0; }
+  .upload-zone { border: 2px dashed var(--border); border-radius: var(--radius); padding: 28px 20px; text-align: center; cursor: pointer; transition: all .18s; background: var(--bg); margin-bottom: 16px; }
+  .upload-zone:hover { border-color: var(--green-light); background: var(--green-xlight); }
+  .upload-zone .icon { font-size: 32px; margin-bottom: 8px; }
+  .upload-zone .label { font-size: 14px; font-weight: 500; }
+  .upload-zone .hint { font-size: 12px; color: var(--text-3); margin-top: 4px; }
+  table { width: 100%; border-collapse: collapse; font-size: 13px; margin-bottom: 16px; }
+  th { text-align: left; padding: 7px 10px; font-size: 11px; font-weight: 600; color: var(--text-3); text-transform: uppercase; letter-spacing: 0.05em; border-bottom: 1px solid var(--border); }
+  td { padding: 7px 10px; border-bottom: 1px solid var(--bg); }
+  .badge { display: inline-flex; font-size: 11px; font-weight: 600; padding: 2px 8px; border-radius: 20px; }
+  .badge-m { background: #E8F0FE; color: #1A5CD4; }
+  .badge-f { background: #FCE4EC; color: #C2185B; }
+  .badge-g { background: #F0F0F0; color: #666; }
+  .btn { display: flex; align-items: center; justify-content: center; gap: 6px; width: 100%; padding: 12px; border-radius: 8px; font-size: 15px; font-weight: 600; border: none; cursor: pointer; transition: all .15s; }
+  .btn-primary { background: var(--green); color: #fff; }
+  .btn-primary:hover { background: var(--green-mid); }
+  .btn-primary:disabled { background: var(--text-3); cursor: not-allowed; }
+  .btn-danger { background: #FDE8E8; color: #C0392B; margin-top: 10px; }
+  .progress { height: 6px; background: var(--border); border-radius: 3px; margin-bottom: 8px; overflow: hidden; }
+  .progress-bar { height: 100%; background: var(--green-light); border-radius: 3px; transition: width .3s; }
+  .progress-label { font-size: 12px; color: var(--text-3); text-align: center; margin-bottom: 16px; }
+  .hidden { display: none !important; }
+  .stat-row { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 16px; }
+  .stat { background: var(--bg); border: 1px solid var(--border); border-radius: 8px; padding: 10px 14px; flex: 1; min-width: 80px; text-align: center; }
+  .stat-val { font-size: 20px; font-weight: 700; color: var(--green); }
+  .stat-label { font-size: 11px; color: var(--text-3); margin-top: 2px; }
+</style>
+</head>
+<body>
+<div class="box">
+  <div style="font-size:28px;margin-bottom:10px;">📋</div>
+  <h1>Schülerliste hochladen</h1>
+  <div class="sub">Einmaliges Hochladen in Supabase – danach lädt die Sporttag-App die Namen automatisch.</div>
+
+  <div class="info amber">
+    ⚠️ Dieses Tool nur einmal vor dem Sporttag verwenden. Bestehende Daten werden zuerst gelöscht.
+  </div>
+
+  <div id="upload-zone" class="upload-zone" onclick="document.getElementById('file-input').click()" ondragover="ev.preventDefault()" ondrop="onDrop(event)">
+    <div class="icon">📂</div>
+    <div class="label">Excel-Datei hierher ziehen oder klicken</div>
+    <div class="hint">Spalten: Name, Klasse (1–6), Geschlecht (m/w)</div>
+  </div>
+  <input type="file" id="file-input" accept=".xlsx,.xls,.csv" style="display:none" onchange="handleFile(this)">
+
+  <div id="preview-section" class="hidden">
+    <div class="stat-row" id="stats"></div>
+    <div style="max-height:220px;overflow-y:auto;margin-bottom:16px;">
+      <table><thead><tr><th>Name</th><th>Klasse</th><th>Geschlecht</th></tr></thead>
+      <tbody id="preview-body"></tbody></table>
+    </div>
+    <div id="progress-wrap" class="hidden">
+      <div class="progress"><div class="progress-bar" id="progress-bar" style="width:0%"></div></div>
+      <div class="progress-label" id="progress-label">Wird hochgeladen…</div>
+    </div>
+    <div id="result-msg"></div>
+    <button class="btn btn-primary" id="upload-btn" onclick="doUpload()">⬆️ Jetzt in Supabase hochladen</button>
+    <button class="btn btn-danger" onclick="resetTool()">Andere Datei wählen</button>
+  </div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script>
+const SUPA_URL = 'https://xzcqihobgqolodguxfnu.supabase.co';
+const SUPA_KEY = 'sb_publishable_l4KDPDKaafgO-x_jkCVyTA_YNUYBLyF';
+
+async function sbFetch(path, opts = {}) {
+  const res = await fetch(SUPA_URL + '/rest/v1/' + path, {
+    ...opts,
+    headers: {
+      'apikey': SUPA_KEY, 'Authorization': 'Bearer ' + SUPA_KEY,
+      'Content-Type': 'application/json', 'Prefer': opts.prefer || '',
+      ...(opts.headers || {}),
+    },
+  });
+  if (!res.ok) { const e = await res.text(); throw new Error(e); }
+  const t = await res.text(); return t ? JSON.parse(t) : null;
+}
+
+let parsedRows = [];
+
+function onDrop(e) {
+  e.preventDefault();
+  const f = e.dataTransfer.files[0]; if (f) processFile(f);
+}
+function handleFile(inp) { if (inp.files[0]) processFile(inp.files[0]); }
+
+function processFile(file) {
+  const ext = file.name.split('.').pop().toLowerCase();
+  if (ext === 'csv') {
+    const r = new FileReader();
+    r.onload = e => parseCSV(e.target.result);
+    r.readAsText(file);
+  } else {
+    const r = new FileReader();
+    r.onload = e => {
+      const wb = XLSX.read(e.target.result, { type: 'array' });
+      const ws = wb.Sheets[wb.SheetNames[0]];
+      parseRows(XLSX.utils.sheet_to_json(ws, { defval: '' }));
+    };
+    r.readAsArrayBuffer(file);
+  }
+}
+
+function parseCSV(text) {
+  const lines = text.trim().split('\n');
+  const headers = lines[0].split(/[,;]/).map(h => h.trim().toLowerCase());
+  parseRows(lines.slice(1).map(line => {
+    const vals = line.split(/[,;]/);
+    const obj = {}; headers.forEach((h, i) => obj[h] = (vals[i]||'').trim());
+    return obj;
+  }));
+}
+
+function parseRows(rows) {
+  const findCol = (row, names) => {
+    const keys = Object.keys(row).map(k => k.toLowerCase().trim());
+    for (const n of names) { const idx = keys.findIndex(k => k.includes(n)); if (idx >= 0) return Object.keys(row)[idx]; }
+    return null;
+  };
+  const sample = rows[0];
+  const nameCol   = findCol(sample, ['name','vorname','schüler','sus']);
+  const klasseCol = findCol(sample, ['klasse','stufe','class','jahrgang']);
+  const geschCol  = findCol(sample, ['geschlecht','gender','sex','m/w']);
+  if (!nameCol || !klasseCol) { alert('Spalten «Name» und «Klasse» nicht gefunden.'); return; }
+
+  parsedRows = rows.map(r => ({
+    name: String(r[nameCol]||'').trim(),
+    klasse: String(r[klasseCol]||'').trim().replace(/[^1-6]/g,''),
+    geschlecht: normalizeG(String(r[geschCol]||'')),
+  })).filter(s => s.name && s.klasse);
+
+  showPreview();
+}
+
+function normalizeG(g) {
+  g = g.trim().toLowerCase();
+  if (['m','männlich','male','knabe','bub'].some(x => g.startsWith(x))) return 'm';
+  if (['w','weiblich','female','mädchen','girl','f'].some(x => g.startsWith(x))) return 'w';
+  return 'u';
+}
+
+function showPreview() {
+  document.getElementById('upload-zone').classList.add('hidden');
+  document.getElementById('preview-section').classList.remove('hidden');
+
+  const byKlasse = {}, total = parsedRows.length;
+  parsedRows.forEach(s => { byKlasse[s.klasse] = (byKlasse[s.klasse]||0)+1; });
+  const m = parsedRows.filter(s => s.geschlecht==='m').length;
+  const w = parsedRows.filter(s => s.geschlecht==='w').length;
+
+  document.getElementById('stats').innerHTML = `
+    <div class="stat"><div class="stat-val">${total}</div><div class="stat-label">Total SuS</div></div>
+    <div class="stat"><div class="stat-val" style="color:#1A5CD4">${m}</div><div class="stat-label">Knaben</div></div>
+    <div class="stat"><div class="stat-val" style="color:#C2185B">${w}</div><div class="stat-label">Mädchen</div></div>
+    <div class="stat"><div class="stat-val">${Object.keys(byKlasse).length}</div><div class="stat-label">Klassen</div></div>`;
+
+  const show = parsedRows.slice(0, 30);
+  document.getElementById('preview-body').innerHTML = show.map(s => `
+    <tr>
+      <td>${esc(s.name)}</td>
+      <td><span class="badge badge-g">${s.klasse}. Kl.</span></td>
+      <td><span class="badge ${s.geschlecht==='m'?'badge-m':'badge-f'}">${s.geschlecht}</span></td>
+    </tr>`).join('') + (parsedRows.length > 30 ? `<tr><td colspan="3" style="color:var(--text-3);text-align:center;padding:8px">… und ${parsedRows.length-30} weitere</td></tr>` : '');
+}
+
+async function doUpload() {
+  if (!parsedRows.length) return;
+  const btn = document.getElementById('upload-btn');
+  btn.disabled = true; btn.textContent = 'Wird hochgeladen…';
+  document.getElementById('progress-wrap').classList.remove('hidden');
+  document.getElementById('result-msg').innerHTML = '';
+
+  try {
+    // Delete existing
+    setProgress(5, 'Bestehende Daten löschen…');
+    await sbFetch('schueler?id=neq.00000000-0000-0000-0000-000000000000', { method: 'DELETE' });
+
+    // Upload in batches of 50
+    const batchSize = 50;
+    for (let i = 0; i < parsedRows.length; i += batchSize) {
+      const batch = parsedRows.slice(i, i + batchSize);
+      await sbFetch('schueler', {
+        method: 'POST',
+        prefer: 'return=minimal',
+        headers: { 'Prefer': 'return=minimal' },
+        body: JSON.stringify(batch),
+      });
+      const pct = Math.round(10 + ((i + batch.length) / parsedRows.length) * 88);
+      setProgress(pct, `${i + batch.length} / ${parsedRows.length} hochgeladen…`);
+    }
+
+    setProgress(100, 'Fertig!');
+    document.getElementById('result-msg').innerHTML = `
+      <div class="info green" style="margin-bottom:12px;">
+        ✅ <strong>${parsedRows.length} Schülerinnen & Schüler</strong> wurden erfolgreich in Supabase gespeichert.<br>
+        Die Sporttag-App lädt die Liste ab sofort automatisch beim Start.
+      </div>`;
+    btn.textContent = '✓ Erfolgreich hochgeladen';
+  } catch(e) {
+    setProgress(0, '');
+    document.getElementById('result-msg').innerHTML = `<div class="info red">Fehler: ${e.message}</div>`;
+    btn.disabled = false; btn.textContent = '⬆️ Nochmals versuchen';
+  }
+}
+
+function setProgress(pct, label) {
+  document.getElementById('progress-bar').style.width = pct + '%';
+  document.getElementById('progress-label').textContent = label;
+}
+
+function resetTool() {
+  parsedRows = [];
+  document.getElementById('upload-zone').classList.remove('hidden');
+  document.getElementById('preview-section').classList.add('hidden');
+  document.getElementById('file-input').value = '';
+  document.getElementById('upload-btn').disabled = false;
+  document.getElementById('upload-btn').textContent = '⬆️ Jetzt in Supabase hochladen';
+  document.getElementById('progress-wrap').classList.add('hidden');
+}
+
+function esc(s) { return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+</script>
+</body>
+</html>
