@@ -106,11 +106,12 @@
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <script>
-const PASSWORD = 'Sporttag_2026';
+const PW_HASH = 'a77603da24498757ed93934391af39c89a179b31d4667724412e98660b1f6c11'; // SHA-256 hash
 
-function doLogin() {
+async function doLogin() {
   const pw = document.getElementById('login-pw').value;
-  if (pw === PASSWORD) {
+  const pwHash = await hashPW(pw);
+  if (pwHash === PW_HASH) {
     document.getElementById('login-overlay').classList.add('hidden');
     document.getElementById('main-content').style.display = 'block';
   } else {
