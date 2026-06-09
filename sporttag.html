@@ -5,1060 +5,850 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Sporttag 2026</title>
 <style>
-  :root {
-    --green: #2D6A4F;
-    --green-light: #52B788;
-    --green-xlight: #D8F3DC;
-    --green-mid: #40916C;
-    --amber: #E9762B;
-    --amber-light: #FDE8D5;
-    --bg: #F7F9F6;
-    --surface: #FFFFFF;
-    --border: #E0E8DF;
-    --text: #1A2E1E;
-    --text-2: #4A6350;
-    --text-3: #7A9880;
-    --radius: 12px;
-    --shadow: 0 2px 12px rgba(45,106,79,0.08);
-  }
-  * { box-sizing: border-box; margin: 0; padding: 0; }
-  body { font-family: system-ui, -apple-system, sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; }
+:root {
+  --g9:#1a3326;--g7:#2D6A4F;--g5:#40916C;--g3:#52B788;--g1:#D8F3DC;
+  --a7:#b85c1a;--a3:#E9762B;--a1:#FDE8D5;
+  --bg:#F4F7F4;--sur:#fff;--bdr:#dde8dc;
+  --tx:#1a2e1e;--tx2:#4a6350;--tx3:#8aaa8e;
+  --r:10px;--sh:0 1px 8px rgba(26,50,38,.07);
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:system-ui,-apple-system,sans-serif;background:var(--bg);color:var(--tx);min-height:100vh}
 
-  /* LOGIN OVERLAY */
-  #login-overlay {
-    position: fixed; inset: 0; background: var(--green);
-    display: flex; align-items: center; justify-content: center;
-    z-index: 1000; flex-direction: column; gap: 0;
-  }
-  #login-overlay.hidden { display: none; }
-  .login-box {
-    background: var(--surface); border-radius: 16px;
-    padding: 36px 32px; width: 100%; max-width: 360px;
-    box-shadow: 0 8px 40px rgba(0,0,0,0.18);
-    text-align: center;
-  }
-  .login-icon { font-size: 40px; margin-bottom: 12px; }
-  .login-title { font-size: 22px; font-weight: 700; color: var(--text); margin-bottom: 4px; letter-spacing: -0.02em; }
-  .login-sub { font-size: 13px; color: var(--text-3); margin-bottom: 24px; }
-  .login-box input[type=password] {
-    width: 100%; padding: 12px 14px; border: 2px solid var(--border);
-    border-radius: 10px; font-size: 16px; background: var(--bg);
-    color: var(--text); text-align: center; letter-spacing: 0.08em;
-    margin-bottom: 12px; transition: border-color .15s;
-  }
-  .login-box input[type=password]:focus { outline: none; border-color: var(--green-light); background: #fff; }
-  .login-error { font-size: 13px; color: #C0392B; background: #FDE8E8; border-radius: 8px; padding: 8px 12px; margin-bottom: 12px; display: none; }
-  .login-error.show { display: block; }
+/* ── LOGIN ── */
+#login{position:fixed;inset:0;background:var(--g7);display:flex;align-items:center;justify-content:center;z-index:999}
+#login.off{display:none}
+.lbox{background:#fff;border-radius:16px;padding:36px 28px;width:min(340px,90vw);text-align:center;box-shadow:0 8px 40px rgba(0,0,0,.18)}
+.lbox .ico{font-size:38px;margin-bottom:10px}
+.lbox h1{font-size:20px;font-weight:700;margin-bottom:4px}
+.lbox p{font-size:13px;color:var(--tx3);margin-bottom:20px}
+.lbox input{width:100%;padding:11px;border:2px solid var(--bdr);border-radius:8px;font-size:16px;text-align:center;letter-spacing:.1em;margin-bottom:10px;background:var(--bg)}
+.lbox input:focus{outline:none;border-color:var(--g3)}
+.lerr{font-size:13px;color:#c0392b;background:#fde8e8;border-radius:6px;padding:7px 12px;margin-bottom:10px;display:none}
+.lerr.on{display:block}
 
+/* ── NAV ── */
+.nav{background:var(--g7);color:#fff;height:50px;display:flex;align-items:center;justify-content:space-between;padding:0 16px;position:sticky;top:0;z-index:100}
+.nav-title{font-size:15px;font-weight:600}
+.sync{font-size:11px;padding:3px 8px;border-radius:20px}
+.sync.ok{background:rgba(255,255,255,.2);color:#fff}
+.sync.err{background:#fde8e8;color:#c0392b}
+.sync.busy{background:rgba(255,255,255,.15);color:rgba(255,255,255,.8)}
+.tabs-bar{background:var(--g5);display:flex;position:sticky;top:50px;z-index:99}
+.tab{flex:1;background:none;border:none;color:rgba(255,255,255,.65);font-size:14px;font-weight:500;padding:10px;cursor:pointer;border-bottom:3px solid transparent;transition:all .15s}
+.tab:hover{color:#fff;background:rgba(255,255,255,.08)}
+.tab.on{color:#fff;border-bottom-color:#fff;background:rgba(255,255,255,.1)}
 
-  /* NAV */
-  .nav { background: var(--green); color: #fff; padding: 0 16px; display: flex; align-items: center; justify-content: space-between; height: 52px; position: sticky; top: 0; z-index: 100; }
-  .nav-title { font-size: 16px; font-weight: 600; letter-spacing: -0.02em; white-space: nowrap; }
-  .nav-right { display: flex; align-items: center; gap: 8px; flex-shrink: 0; }
-  /* Tabs as bottom bar */
-  .nav-tabs-bar { background: var(--green-mid); display: flex; position: sticky; top: 52px; z-index: 99; }
-  .nav-tab { flex: 1; background: none; border: none; color: rgba(255,255,255,0.7); font-size: 14px; font-weight: 500; padding: 10px 8px; cursor: pointer; transition: all .18s; border-bottom: 3px solid transparent; }
-  .nav-tab:hover { color: #fff; background: rgba(255,255,255,0.08); }
-  .nav-tab.active { color: #fff; border-bottom-color: #fff; background: rgba(255,255,255,0.1); }
+/* ── LAYOUT ── */
+.page{display:none;max-width:640px;margin:0 auto;padding:16px 14px 60px}
+.page.on{display:block}
+.card{background:var(--sur);border:1px solid var(--bdr);border-radius:var(--r);padding:16px;margin-bottom:12px;box-shadow:var(--sh)}
+.sec-label{font-size:10px;font-weight:700;color:var(--tx3);text-transform:uppercase;letter-spacing:.06em;margin-bottom:6px}
 
-  /* PAGES */
-  .page { display: none; max-width: 680px; margin: 0 auto; padding: 20px 16px 60px; }
-  .page.active { display: block; }
+/* ── CHIP SELECTORS ── */
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chip{padding:6px 14px;border-radius:20px;font-size:13px;font-weight:500;border:1.5px solid var(--bdr);background:var(--sur);color:var(--tx2);cursor:pointer;transition:all .15s;white-space:nowrap}
+.chip:hover{border-color:var(--g3);color:var(--g7)}
+.chip.on{background:var(--g7);color:#fff;border-color:var(--g7)}
 
-  /* CARDS */
-  .card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 20px; margin-bottom: 16px; box-shadow: var(--shadow); }
-  .card-title { font-size: 14px; font-weight: 600; color: var(--text); margin-bottom: 14px; display: flex; align-items: center; gap: 8px; }
-  .card-title .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--green-light); flex-shrink: 0; }
+/* ── SUS LIST ── */
+.sus-item{display:flex;align-items:center;justify-content:space-between;padding:11px 13px;border-radius:8px;border:1.5px solid var(--bdr);margin-bottom:7px;cursor:pointer;transition:all .14s;background:var(--sur)}
+.sus-item:hover{border-color:var(--g3)}
+.sus-item.done{border-color:var(--g3);background:var(--g1)}
+.sus-item.open{border-color:var(--g7);box-shadow:0 0 0 3px rgba(82,183,136,.18)}
+.sus-name{font-size:14px;font-weight:500}
+.sus-meta{font-size:11px;color:var(--tx3);margin-top:2px}
+.sus-val{font-size:15px;font-weight:600;color:var(--g7);text-align:right}
+.sus-val.empty{color:var(--tx3);font-size:13px;font-weight:400}
 
-  /* FORMS */
-  label { font-size: 13px; color: var(--text-2); display: block; margin-bottom: 5px; font-weight: 500; }
-  select, input[type=number], input[type=text] {
-    width: 100%; padding: 10px 12px; border: 1.5px solid var(--border); border-radius: 8px;
-    font-size: 15px; background: var(--bg); color: var(--text); appearance: none; -webkit-appearance: none;
-    transition: border-color .15s;
-  }
-  select:focus, input:focus { outline: none; border-color: var(--green-light); background: #fff; }
-  select { background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%234A6350' stroke-width='2'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 10px center; padding-right: 34px; }
-  .form-row { margin-bottom: 14px; }
-  .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+/* ── INPUT PANELS ── */
+.inp-panel{display:none;padding:10px 13px;background:#fff;border-top:1px solid var(--bdr);border-radius:0 0 8px 8px;align-items:center;gap:8px}
+.inp-panel.on{display:flex}
+.inp-panel input{flex:1;padding:9px 11px;border:1.5px solid var(--bdr);border-radius:7px;font-size:15px;background:var(--bg)}
+.inp-panel input:focus{outline:none;border-color:var(--g3)}
+.unit{font-size:12px;color:var(--tx3);white-space:nowrap}
+/* Triple */
+.triple-panel{display:none;padding:12px 13px;background:#fff;border-top:1px solid var(--bdr);border-radius:0 0 8px 8px;flex-direction:column;gap:9px}
+.triple-panel.on{display:flex}
+.triple-row{display:flex;align-items:center;gap:8px}
+.triple-lbl{font-size:12px;font-weight:600;color:var(--tx3);min-width:68px}
+.triple-row input{flex:1;padding:8px 10px;border:1.5px solid var(--bdr);border-radius:7px;font-size:14px;background:var(--bg)}
+.triple-row input:focus{outline:none;border-color:var(--g3)}
+.best-bar{display:flex;align-items:center;justify-content:space-between;padding:8px 10px;background:var(--g1);border-radius:6px;border:1px solid var(--g3)}
+.best-lbl{font-size:12px;color:var(--g7);font-weight:500}
+.best-val{font-size:15px;font-weight:700;color:var(--g7)}
 
-  /* BUTTONS */
-  .btn { display: inline-flex; align-items: center; justify-content: center; gap: 6px; padding: 11px 22px; border-radius: 8px; font-size: 14px; font-weight: 500; border: none; cursor: pointer; transition: all .15s; }
-  .btn-primary { background: var(--green); color: #fff; }
-  .btn-primary:hover { background: var(--green-mid); }
-  .btn-primary:disabled { background: var(--text-3); cursor: not-allowed; }
-  .btn-secondary { background: var(--green-xlight); color: var(--green); }
-  .btn-secondary:hover { background: #c6e8cc; }
-  .btn-ghost { background: none; border: 1.5px solid var(--border); color: var(--text-2); }
-  .btn-ghost:hover { border-color: var(--green-light); color: var(--green); }
-  .btn-full { width: 100%; }
+/* ── BUTTONS ── */
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;padding:10px 20px;border-radius:8px;font-size:14px;font-weight:500;border:none;cursor:pointer;transition:all .14s}
+.btn-p{background:var(--g7);color:#fff}.btn-p:hover{background:var(--g5)}
+.btn-s{background:var(--g1);color:var(--g7)}.btn-s:hover{background:#c6e8cc}
+.btn-g{background:none;border:1.5px solid var(--bdr);color:var(--tx2)}.btn-g:hover{border-color:var(--g3);color:var(--g7)}
+.btn-full{width:100%}
+.btn:disabled{background:var(--tx3);cursor:not-allowed}
 
-  /* BADGES */
-  .badge { display: inline-flex; align-items: center; font-size: 11px; font-weight: 600; padding: 3px 9px; border-radius: 20px; }
-  .badge-green { background: var(--green-xlight); color: var(--green); }
-  .badge-amber { background: var(--amber-light); color: var(--amber); }
-  .badge-gray { background: #F0F0F0; color: #666; }
-  .badge-m { background: #E8F0FE; color: #1A5CD4; }
-  .badge-f { background: #FCE4EC; color: #C2185B; }
+/* ── BADGES ── */
+.badge{display:inline-flex;font-size:10px;font-weight:700;padding:2px 7px;border-radius:20px}
+.bm{background:#e8f0fe;color:#1a5cd4}.bw{background:#fce4ec;color:#c2185b}.bg{background:#f0f0f0;color:#555}
 
-  /* UPLOAD */
-  .upload-zone { border: 2px dashed var(--border); border-radius: var(--radius); padding: 28px 20px; text-align: center; cursor: pointer; transition: all .18s; background: var(--bg); }
-  .upload-zone:hover, .upload-zone.drag { border-color: var(--green-light); background: var(--green-xlight); }
-  .upload-hint { font-size: 13px; color: var(--text-3); margin-top: 6px; }
-  .upload-ok { display: flex; align-items: center; gap: 10px; padding: 14px 16px; background: var(--green-xlight); border-radius: 8px; border: 1.5px solid var(--green-light); }
-  .upload-ok .ok-text { font-size: 13px; color: var(--green); font-weight: 500; }
+/* ── INFO BOXES ── */
+.info{padding:12px 14px;border-radius:8px;font-size:13px;line-height:1.6}
+.info.amber{background:var(--a1);color:#7a3a0a;border:1px solid #f4b47a}
+.info.green{background:var(--g1);color:var(--g7);border:1px solid var(--g3)}
+.info.red{background:#fde8e8;color:#c0392b;border:1px solid #f5c0c0}
 
-  /* POSTEN BUTTONS */
-  .posten-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 6px; }
-  .posten-btn { padding: 16px 10px; border: 2px solid var(--border); border-radius: 10px; background: var(--surface); text-align: center; cursor: pointer; font-size: 14px; font-weight: 500; transition: all .18s; color: var(--text-2); }
-  .posten-btn:hover { border-color: var(--green-light); color: var(--green); background: var(--green-xlight); }
-  .posten-btn.selected { border-color: var(--green); color: var(--green); background: var(--green-xlight); }
-  .posten-icon { font-size: 26px; display: block; margin-bottom: 6px; }
+/* ── RANGLISTE ── */
+.rank-grp{margin-bottom:20px}
+.rank-hdr{display:flex;align-items:center;gap:8px;margin-bottom:10px;padding-bottom:8px;border-bottom:2px solid var(--g1)}
+.rank-hdr-title{font-size:15px;font-weight:600}
+.rank-row{display:flex;align-items:center;gap:10px;padding:9px 13px;border-radius:8px;margin-bottom:5px;background:var(--sur);border:1px solid var(--bdr)}
+.rank-row.r1{border-color:#f9c73b;background:#fffbee}
+.rank-row.r2{border-color:#c8d4dc;background:#f6f8fa}
+.rank-row.r3{border-color:#d4aa78;background:#fbf5ee}
+.rank-num{font-size:17px;font-weight:700;min-width:28px;text-align:center}
+.gold{color:#d4a017}.silver{color:#8a9ba8}.bronze{color:#a0784a}.normal{color:var(--tx3);font-size:13px}
+.rank-name{flex:1;font-size:14px;font-weight:500}
+.rank-detail{font-size:10px;color:var(--tx3);margin-top:1px}
+.rank-score{font-size:15px;font-weight:700;color:var(--g7);min-width:36px;text-align:right}
+.incomplete{font-size:12px;color:var(--a3);padding:7px 11px;background:var(--a1);border-radius:6px;margin-bottom:8px}
 
-  /* SUS LIST */
-  .sus-item { display: flex; align-items: center; justify-content: space-between; padding: 12px 14px; border-radius: 8px; border: 1.5px solid var(--border); margin-bottom: 8px; cursor: pointer; transition: all .15s; background: var(--surface); }
-  .sus-item:hover { border-color: var(--green-light); }
-  .sus-item.has-data { border-color: var(--green-light); background: var(--green-xlight); }
-  .sus-item.active-input { border-color: var(--green); box-shadow: 0 0 0 3px rgba(82,183,136,0.18); }
-  .sus-name { font-size: 14px; font-weight: 500; }
-  .sus-meta { font-size: 12px; color: var(--text-3); margin-top: 1px; }
-  .sus-value { font-size: 15px; font-weight: 600; color: var(--green); text-align: right; }
-  .sus-value.empty { color: var(--text-3); font-weight: 400; font-size: 13px; }
+/* ── FILTER ── */
+.filter-bar{display:flex;gap:6px;flex-wrap:wrap}
+.fc{padding:6px 13px;border-radius:20px;font-size:13px;font-weight:500;border:1.5px solid var(--bdr);background:var(--sur);color:var(--tx2);cursor:pointer;transition:all .14s}
+.fc:hover{border-color:var(--g3);color:var(--g7)}
+.fc.on{background:var(--g7);color:#fff;border-color:var(--g7)}
 
-  /* INLINE INPUT */
-  .inline-input { display: none; padding: 10px 14px; background: #fff; border-top: 1px solid var(--border); margin-top: 2px; border-radius: 0 0 8px 8px; align-items: center; gap: 10px; }
-  .inline-input.open { display: flex; }
-  .inline-input input { flex: 1; }
-  .inline-input .unit { font-size: 13px; color: var(--text-3); white-space: nowrap; }
+/* ── EXPORT DROPDOWN ── */
+.exp-wrap{position:relative;display:inline-block}
+.exp-menu{display:none;position:absolute;right:0;top:calc(100% + 5px);background:var(--sur);border:1px solid var(--bdr);border-radius:var(--r);box-shadow:0 4px 20px rgba(0,0,0,.11);min-width:230px;z-index:200;overflow:hidden}
+.exp-menu.on{display:block}
+.exp-sec{padding:6px 0;border-bottom:1px solid var(--bdr)}
+.exp-sec:last-child{border:none}
+.exp-sec-lbl{font-size:10px;font-weight:700;color:var(--tx3);text-transform:uppercase;letter-spacing:.06em;padding:5px 13px 3px}
+.exp-item{display:flex;align-items:center;gap:9px;padding:8px 13px;cursor:pointer;font-size:13px;color:var(--tx);background:none;border:none;width:100%;text-align:left;transition:background .12s}
+.exp-item:hover{background:var(--bg)}
+.exp-item .ei{font-size:15px;width:20px;text-align:center}
+.exp-item .el{font-weight:500}
+.exp-item .es{font-size:11px;color:var(--tx3)}
 
-  /* WEITSPRUNG 3-VERSUCHE */
-  .triple-input { display: none; padding: 12px 14px; background: #fff; border-top: 1px solid var(--border); margin-top: 2px; border-radius: 0 0 8px 8px; flex-direction: column; gap: 10px; }
-  .triple-input.open { display: flex; }
-  .triple-row { display: flex; align-items: center; gap: 8px; }
-  .triple-label { font-size: 12px; font-weight: 600; color: var(--text-3); min-width: 62px; }
-  .triple-row input { flex: 1; }
-  .triple-row .unit { font-size: 12px; color: var(--text-3); white-space: nowrap; }
-  .triple-best { display: flex; align-items: center; justify-content: space-between; padding: 8px 10px; background: var(--green-xlight); border-radius: 6px; border: 1px solid var(--green-light); }
-  .triple-best-label { font-size: 12px; color: var(--green); font-weight: 500; }
-  .triple-best-val { font-size: 15px; font-weight: 700; color: var(--green); }
+/* ── PROGRESS ── */
+.progress{height:5px;background:var(--bdr);border-radius:3px;margin-bottom:6px;overflow:hidden}
+.pbar{height:100%;background:var(--g3);border-radius:3px;transition:width .3s}
+.plbl{font-size:12px;color:var(--tx3);text-align:center;margin-bottom:12px}
 
-  /* SELECTOR TABS (posten / gruppe / klasse) */
-  .sel-tabs { display: flex; gap: 6px; flex-wrap: wrap; }
-  .sel-tab { padding: 7px 14px; border-radius: 20px; font-size: 13px; font-weight: 500; border: 1.5px solid var(--border); background: var(--surface); color: var(--text-2); cursor: pointer; transition: all .15s; white-space: nowrap; }
-  .sel-tab:hover { border-color: var(--green-light); color: var(--green); }
-  .sel-tab.active { background: var(--green); color: #fff; border-color: var(--green); }
+/* ── MISC ── */
+.hidden{display:none!important}
+.txt-c{text-align:center}
+.mt8{margin-top:8px}
+.mt12{margin-top:12px}
+.mt16{margin-top:16px}
+.mb0{margin-bottom:0}
+.flex-bw{display:flex;align-items:center;justify-content:space-between}
+.tx-sm{font-size:13px;color:var(--tx2)}
+.tx-xs{font-size:12px;color:var(--tx3)}
+.divider{height:1px;background:var(--bdr);margin:12px 0}
 
-  /* RANGLISTE */
-  .rangliste-group { margin-bottom: 24px; }
-  .rangliste-header { display: flex; align-items: center; gap: 10px; margin-bottom: 12px; padding-bottom: 10px; border-bottom: 2px solid var(--green-xlight); }
-  .rangliste-title { font-size: 16px; font-weight: 600; }
-  .rank-row { display: flex; align-items: center; gap: 12px; padding: 10px 14px; border-radius: 8px; margin-bottom: 6px; background: var(--surface); border: 1px solid var(--border); }
-  .rank-row.rank-1 { border-color: #F9C73B; background: #FFFBEE; }
-  .rank-row.rank-2 { border-color: #C8D4DC; background: #F6F8FA; }
-  .rank-row.rank-3 { border-color: #D4AA78; background: #FBF5EE; }
-  .rank-num { font-size: 18px; font-weight: 700; min-width: 30px; text-align: center; }
-  .rank-num.gold { color: #D4A017; }
-  .rank-num.silver { color: #8A9BA8; }
-  .rank-num.bronze { color: #A0784A; }
-  .rank-num.normal { color: var(--text-3); font-size: 14px; font-weight: 600; }
-  .rank-name { flex: 1; font-size: 14px; font-weight: 500; }
-  .rank-detail { font-size: 11px; color: var(--text-3); margin-top: 1px; }
-  .rank-score { font-size: 16px; font-weight: 700; color: var(--green); min-width: 40px; text-align: right; }
-  .incomplete-hint { font-size: 12px; color: var(--amber); padding: 8px 12px; background: var(--amber-light); border-radius: 6px; margin-bottom: 10px; }
-  .filter-bar { display: flex; gap: 8px; margin-bottom: 16px; flex-wrap: wrap; }
-  .filter-chip { padding: 6px 14px; border-radius: 20px; font-size: 13px; font-weight: 500; border: 1.5px solid var(--border); background: var(--surface); color: var(--text-2); cursor: pointer; transition: all .15s; }
-  .filter-chip.active { background: var(--green); color: #fff; border-color: var(--green); }
-
-  /* EXPORT */
-  .export-row { display: flex; align-items: center; justify-content: space-between; padding: 14px 16px; border-radius: 8px; border: 1px solid var(--border); background: var(--surface); margin-bottom: 8px; }
-  .export-label { font-size: 14px; font-weight: 500; }
-  .export-sub { font-size: 12px; color: var(--text-3); margin-top: 2px; }
-
-  /* INFO */
-  .info-box { padding: 14px 16px; border-radius: 8px; font-size: 13px; line-height: 1.6; }
-  .info-box.green { background: var(--green-xlight); color: var(--green); border: 1px solid var(--green-light); }
-  .info-box.amber { background: var(--amber-light); color: #7A3A0A; border: 1px solid #F4B47A; }
-
-  /* SYNC STATUS */
-  .sync-indicator { font-size: 11px; font-weight: 500; padding: 3px 8px; border-radius: 20px; transition: all .3s; max-width: 80px; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
-  .sync-syncing { background: rgba(255,255,255,0.2); color: #fff; }
-  .sync-ok      { background: rgba(255,255,255,0.2); color: #fff; }
-  .sync-error   { background: #FDE8E8; color: #C0392B; }
-
-  /* HELPERS */
-  .hidden { display: none !important; }
-  .text-center { text-align: center; }
-  .mt-8 { margin-top: 8px; }
-  .mt-12 { margin-top: 12px; }
-  .mt-16 { margin-top: 16px; }
-  .mb-0 { margin-bottom: 0; }
-  .flex-between { display: flex; align-items: center; justify-content: space-between; }
-  .text-sm { font-size: 13px; color: var(--text-2); }
-  .text-xs { font-size: 12px; color: var(--text-3); }
-
-  /* SUS TABLE */
-  .sus-table { width: 100%; border-collapse: collapse; font-size: 13px; }
-  .sus-table th { text-align: left; padding: 7px 10px; font-size: 11px; font-weight: 600; color: var(--text-3); text-transform: uppercase; letter-spacing: 0.05em; border-bottom: 1px solid var(--border); }
-  .sus-table td { padding: 7px 10px; border-bottom: 1px solid var(--bg); }
-  .sus-table tr:last-child td { border-bottom: none; }
-
-  /* EXPORT DROPDOWN */
-  .export-dropdown { position: relative; display: inline-block; }
-  .export-dropdown-menu {
-    display: none; position: absolute; right: 0; top: calc(100% + 6px);
-    background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius);
-    box-shadow: 0 4px 20px rgba(0,0,0,0.12); min-width: 240px; z-index: 200; overflow: hidden;
-  }
-  .export-dropdown-menu.open { display: block; }
-  .export-dropdown-section { padding: 8px 0; border-bottom: 1px solid var(--border); }
-  .export-dropdown-section:last-child { border-bottom: none; }
-  .export-dropdown-label { font-size: 10px; font-weight: 700; color: var(--text-3); text-transform: uppercase; letter-spacing: 0.06em; padding: 6px 14px 4px; }
-  .export-dropdown-item { display: flex; align-items: center; gap: 10px; padding: 9px 14px; cursor: pointer; font-size: 13px; color: var(--text); transition: background .12s; border: none; background: none; width: 100%; text-align: left; }
-  .export-dropdown-item:hover { background: var(--bg); }
-  .export-dropdown-item .item-icon { font-size: 16px; width: 22px; text-align: center; flex-shrink: 0; }
-  .export-dropdown-item .item-label { font-weight: 500; }
-  .export-dropdown-item .item-sub { font-size: 11px; color: var(--text-3); }
-
-  @media (max-width: 480px) {
-    .posten-grid { grid-template-columns: 1fr 1fr; }
-
-    .sync-ok .sync-text { display: none; }
-    .login-box { margin: 16px; padding: 28px 20px; }
-  }
+@media(max-width:480px){
+  .tab{font-size:13px;padding:9px 6px}
+  .nav-title{font-size:14px}
+}
 </style>
 </head>
 <body>
 
-<!-- =================== LOGIN =================== -->
-<div id="login-overlay">
-  <div class="login-box">
-    <div class="login-icon">🏃</div>
-    <div class="login-title">Sporttag 2026</div>
-    <div class="login-sub">Bitte Passwort eingeben</div>
-    <div class="login-error" id="login-error">Falsches Passwort. Bitte nochmals versuchen.</div>
-    <input type="password" id="login-pw" placeholder="Passwort" onkeydown="if(event.key==='Enter')doLogin()">
-    <button class="btn btn-primary btn-full" onclick="doLogin()">Anmelden</button>
+<!-- LOGIN -->
+<div id="login">
+  <div class="lbox">
+    <div class="ico">🏃</div>
+    <h1>Sporttag 2026</h1>
+    <p>Bitte Passwort eingeben</p>
+    <div class="lerr" id="lerr">Falsches Passwort.</div>
+    <input type="password" id="lpw" placeholder="Passwort" onkeydown="if(event.key==='Enter')login()">
+    <button class="btn btn-p btn-full" onclick="login()">Anmelden</button>
   </div>
 </div>
 
-<!-- =================== MAIN APP =================== -->
-<div id="main-app" class="hidden">
-
-<nav class="nav">
-  <div class="nav-title">🏃 Sporttag 2026</div>
-  <div class="nav-right">
-    <span id="sync-status" class="sync-indicator"></span>
-  </div>
-</nav>
-<div class="nav-tabs-bar">
-  <button class="nav-tab active" onclick="showPage('erfassung')">Erfassung</button>
-  <button class="nav-tab" onclick="showPage('rangliste')">Rangliste</button>
-</div>
-
-<!-- =================== ERFASSUNG =================== -->
-<div id="page-erfassung" class="page active">
-
-  <div class="card">
-
-    <div style="margin-bottom:14px;">
-      <div style="font-size:11px;font-weight:600;color:var(--text-3);text-transform:uppercase;letter-spacing:0.05em;margin-bottom:6px;">Posten</div>
-      <div class="sel-tabs" id="posten-tabs">
-        <div class="sel-tab" data-val="ballweitwurf" onclick="selectPosten(this)">🎯 Ballweitwurf</div>
-        <div class="sel-tab" data-val="ausdauerlauf" onclick="selectPosten(this)">🏃 Ausdauerlauf</div>
-        <div class="sel-tab" data-val="hochsprung"   onclick="selectPosten(this)">⬆️ Hochsprung</div>
-        <div class="sel-tab" data-val="weitsprung"   onclick="selectPosten(this)">↔️ Weitsprung</div>
-        <div class="sel-tab" data-val="schnellauf"   onclick="selectPosten(this)">⚡ Schnellauf</div>
-      </div>
-    </div>
-
-    <div style="margin-bottom:14px;">
-      <div style="font-size:11px;font-weight:600;color:var(--text-3);text-transform:uppercase;letter-spacing:0.05em;margin-bottom:6px;">Gruppe</div>
-      <div class="sel-tabs" id="gruppe-tabs">
-        <div class="sel-tab" data-val="A" onclick="selectGruppe(this)">Gruppe A</div>
-        <div class="sel-tab" data-val="B" onclick="selectGruppe(this)">Gruppe B</div>
-      </div>
-    </div>
-
-    <div>
-      <div class="flex-between" style="margin-bottom:6px;">
-        <div style="font-size:11px;font-weight:600;color:var(--text-3);text-transform:uppercase;letter-spacing:0.05em;">Klasse</div>
-        <span class="text-xs" id="sus-progress"></span>
-      </div>
-      <div class="sel-tabs" id="klassen-tabs">
-        <div class="sel-tab klassen-tab" data-kl="1" onclick="selectKlasse(this)">1. Kl.</div>
-        <div class="sel-tab klassen-tab" data-kl="2" onclick="selectKlasse(this)">2. Kl.</div>
-        <div class="sel-tab klassen-tab" data-kl="3" onclick="selectKlasse(this)">3. Kl.</div>
-        <div class="sel-tab klassen-tab" data-kl="4" onclick="selectKlasse(this)">4. Kl.</div>
-        <div class="sel-tab klassen-tab" data-kl="5" onclick="selectKlasse(this)">5. Kl.</div>
-        <div class="sel-tab klassen-tab" data-kl="6" onclick="selectKlasse(this)">6. Kl.</div>
-      </div>
-    </div>
-
+<!-- APP -->
+<div id="app" class="hidden">
+  <nav class="nav">
+    <span class="nav-title">🏃 Sporttag 2026</span>
+    <span id="sync" class="sync"></span>
+  </nav>
+  <div class="tabs-bar">
+    <button class="tab on" onclick="gotoPage('erfassung',this)">Erfassung</button>
+    <button class="tab"    onclick="gotoPage('rangliste',this)">Rangliste</button>
   </div>
 
-  <div id="sus-list-card" class="hidden">
+  <!-- ERFASSUNG -->
+  <div id="erfassung" class="page on">
+    <div class="card">
+      <div class="sec-label" style="margin-bottom:6px">Posten</div>
+      <div class="chips" id="posten-chips">
+        <div class="chip" data-v="ballweitwurf" onclick="pickPosten(this)">🎯 Ballweitwurf</div>
+        <div class="chip" data-v="ausdauerlauf" onclick="pickPosten(this)">🏃 Ausdauerlauf</div>
+        <div class="chip" data-v="hochsprung"   onclick="pickPosten(this)">⬆️ Hochsprung</div>
+        <div class="chip" data-v="weitsprung"   onclick="pickPosten(this)">↔️ Weitsprung</div>
+        <div class="chip" data-v="schnellauf"   onclick="pickPosten(this)">⚡ Schnellauf</div>
+      </div>
+      <div class="divider"></div>
+      <div class="sec-label" style="margin-bottom:6px">Gruppe</div>
+      <div class="chips" id="gruppe-chips">
+        <div class="chip" data-v="A" onclick="pickGruppe(this)">Gruppe A</div>
+        <div class="chip" data-v="B" onclick="pickGruppe(this)">Gruppe B</div>
+      </div>
+      <div class="divider"></div>
+      <div class="flex-bw" style="margin-bottom:6px">
+        <div class="sec-label mb0">Klasse</div>
+        <span class="tx-xs" id="progress"></span>
+      </div>
+      <div class="chips" id="klasse-chips">
+        <div class="chip" data-v="1" onclick="pickKlasse(this)">1. Kl.</div>
+        <div class="chip" data-v="2" onclick="pickKlasse(this)">2. Kl.</div>
+        <div class="chip" data-v="3" onclick="pickKlasse(this)">3. Kl.</div>
+        <div class="chip" data-v="4" onclick="pickKlasse(this)">4. Kl.</div>
+        <div class="chip" data-v="5" onclick="pickKlasse(this)">5. Kl.</div>
+        <div class="chip" data-v="6" onclick="pickKlasse(this)">6. Kl.</div>
+      </div>
+    </div>
+
+    <div id="sus-empty" class="card txt-c hidden">
+      <div style="font-size:26px;margin-bottom:8px">📋</div>
+      <div style="font-weight:600;margin-bottom:5px">Keine SuS gefunden</div>
+      <div class="tx-sm" id="sus-empty-msg">Posten, Gruppe und Klasse wählen.</div>
+    </div>
+
     <div id="sus-list"></div>
   </div>
 
-  <div id="erfassung-no-sus" class="card text-center hidden">
-    <div style="font-size:28px;margin-bottom:8px;">📋</div>
-    <div style="font-weight:600;margin-bottom:6px;">Keine SuS in dieser Gruppe / Klasse</div>
-    <div class="text-sm">Für diese Klasse sind keine SuS in deiner Gruppe erfasst.</div>
-    <div id="debug-info" style="margin-top:12px;padding:10px;background:#f0f0f0;border-radius:8px;font-size:11px;text-align:left;font-family:monospace;color:#333;"></div>
-  </div>
-
-</div>
-
-<!-- =================== RANGLISTE =================== -->
-<div id="page-rangliste" class="page">
-
-  <div id="rangliste-no-data" class="card text-center hidden">
-    <div style="font-size:32px;margin-bottom:8px;">🏆</div>
-    <div style="font-weight:600;margin-bottom:6px;">Noch keine Daten</div>
-    <div class="text-sm">Sobald Daten erfasst wurden, erscheint hier die Rangliste.</div>
-  </div>
-
-  <div id="rangliste-content" class="hidden">
-    <div class="card">
-      <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:12px;flex-wrap:wrap;">
-        <div style="flex:1;min-width:0;">
-          <div>
-            <label style="margin-bottom:6px;">Stufe</label>
-            <div class="filter-bar" id="filter-stufe">
-              <div class="filter-chip active" data-val="all" onclick="setFilter('stufe','all',this)">Alle</div>
-              <div class="filter-chip" data-val="1" onclick="setFilter('stufe','1',this)">1. Kl.</div>
-              <div class="filter-chip" data-val="2" onclick="setFilter('stufe','2',this)">2. Kl.</div>
-              <div class="filter-chip" data-val="3" onclick="setFilter('stufe','3',this)">3. Kl.</div>
-              <div class="filter-chip" data-val="4" onclick="setFilter('stufe','4',this)">4. Kl.</div>
-              <div class="filter-chip" data-val="5" onclick="setFilter('stufe','5',this)">5. Kl.</div>
-              <div class="filter-chip" data-val="6" onclick="setFilter('stufe','6',this)">6. Kl.</div>
+  <!-- RANGLISTE -->
+  <div id="rangliste" class="page">
+    <div id="rl-no-data" class="card txt-c hidden">
+      <div style="font-size:26px;margin-bottom:8px">🏆</div>
+      <div style="font-weight:600">Noch keine Daten erfasst</div>
+    </div>
+    <div id="rl-content" class="hidden">
+      <div class="card">
+        <div class="flex-bw" style="gap:10px;flex-wrap:wrap;align-items:flex-start">
+          <div style="flex:1;min-width:0">
+            <div class="sec-label" style="margin-bottom:5px">Stufe</div>
+            <div class="filter-bar" id="f-stufe">
+              <div class="fc on" data-v="all" onclick="setFilter('stufe','all',this)">Alle</div>
+              <div class="fc" data-v="1" onclick="setFilter('stufe','1',this)">1. Kl.</div>
+              <div class="fc" data-v="2" onclick="setFilter('stufe','2',this)">2. Kl.</div>
+              <div class="fc" data-v="3" onclick="setFilter('stufe','3',this)">3. Kl.</div>
+              <div class="fc" data-v="4" onclick="setFilter('stufe','4',this)">4. Kl.</div>
+              <div class="fc" data-v="5" onclick="setFilter('stufe','5',this)">5. Kl.</div>
+              <div class="fc" data-v="6" onclick="setFilter('stufe','6',this)">6. Kl.</div>
+            </div>
+            <div class="sec-label" style="margin-bottom:5px;margin-top:10px">Geschlecht</div>
+            <div class="filter-bar" id="f-gesch">
+              <div class="fc on" data-v="all" onclick="setFilter('gesch','all',this)">Alle</div>
+              <div class="fc" data-v="m"   onclick="setFilter('gesch','m',this)">Knaben</div>
+              <div class="fc" data-v="w"   onclick="setFilter('gesch','w',this)">Mädchen</div>
             </div>
           </div>
-          <div style="margin-top:10px;">
-            <label style="margin-bottom:6px;">Geschlecht</label>
-            <div class="filter-bar" id="filter-geschlecht">
-              <div class="filter-chip active" data-val="all" onclick="setFilter('geschlecht','all',this)">Alle</div>
-              <div class="filter-chip" data-val="m" onclick="setFilter('geschlecht','m',this)">Knaben</div>
-              <div class="filter-chip" data-val="w" onclick="setFilter('geschlecht','w',this)">Mädchen</div>
-            </div>
-          </div>
-        </div>
-        <div style="display:flex;flex-direction:column;gap:6px;align-items:flex-end;flex-shrink:0;padding-top:2px;">
-          <button class="btn btn-ghost" style="font-size:12px;padding:6px 12px;" onclick="loadFromSupabase().then(()=>buildRangliste())">⟳ Aktualisieren</button>
-          <div class="export-dropdown" id="export-dropdown">
-            <button class="btn btn-primary" style="font-size:13px;padding:8px 14px;gap:5px;" onclick="toggleExportMenu(event)">
-              📥 Export <span style="font-size:10px;opacity:0.8;" id="export-arrow">▼</span>
-            </button>
-            <div class="export-dropdown-menu" id="export-menu">
-              <div class="export-dropdown-section">
-                <div class="export-dropdown-label">Gesamtauswertung</div>
-                <button class="export-dropdown-item" onclick="exportExcel();closeExportMenu()">
-                  <span class="item-icon">📊</span>
-                  <div><div class="item-label">Alle Klassen – Excel</div><div class="item-sub">Rangliste + Rohdaten</div></div>
-                </button>
-                <button class="export-dropdown-item" onclick="exportCSV();closeExportMenu()">
-                  <span class="item-icon">📄</span>
-                  <div><div class="item-label">Alle Klassen – CSV</div><div class="item-sub">Rohdaten aller Messwerte</div></div>
-                </button>
-              </div>
-              <div class="export-dropdown-section" id="export-klassen-section">
-                <div class="export-dropdown-label">Pro Klasse (Klassenverband)</div>
-                <div id="export-klassen-items"><div style="padding:8px 14px;font-size:12px;color:var(--text-3)">Wird geladen…</div></div>
-              </div>
-              <div class="export-dropdown-section" id="export-stufen-section">
-                <div class="export-dropdown-label">Pro Jahrgangsstufe</div>
-                <div id="export-stufen-items"><div style="padding:8px 14px;font-size:12px;color:var(--text-3)">Wird geladen…</div></div>
+          <div style="display:flex;flex-direction:column;gap:5px;align-items:flex-end;padding-top:2px">
+            <button class="btn btn-g" style="font-size:12px;padding:6px 11px" onclick="doRefresh()">⟳ Aktualisieren</button>
+            <div class="exp-wrap" id="exp-wrap">
+              <button class="btn btn-p" style="font-size:13px;padding:8px 13px" onclick="toggleExp(event)">📥 Export ▾</button>
+              <div class="exp-menu" id="exp-menu">
+                <div class="exp-sec">
+                  <div class="exp-sec-lbl">Gesamt</div>
+                  <button class="exp-item" onclick="expAll();closeExp()"><span class="ei">📊</span><div><div class="el">Alle Klassen – Excel</div><div class="es">Rangliste + Rohdaten</div></div></button>
+                  <button class="exp-item" onclick="expCSV();closeExp()"><span class="ei">📄</span><div><div class="el">Alle Klassen – CSV</div></div></button>
+                </div>
+                <div class="exp-sec">
+                  <div class="exp-sec-lbl">Pro Klassenverband</div>
+                  <div id="exp-klassen"></div>
+                </div>
+                <div class="exp-sec">
+                  <div class="exp-sec-lbl">Pro Jahrgangsstufe</div>
+                  <div id="exp-stufen"></div>
+                </div>
               </div>
             </div>
           </div>
         </div>
       </div>
+      <div id="rl-body"></div>
     </div>
-
-    <div id="rangliste-body"></div>
-
   </div>
 </div>
-
-</div><!-- end main-app -->
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <script>
-// ============ SUPABASE ============
-const SUPA_URL = 'https://dtedcfrfldptllhonaqh.supabase.co';
-const SUPA_KEY = 'sb_publishable_TGq4V3Dpl6i4Go3M388rlg_-NEEEGn_';
-
-async function sbFetch(path, opts = {}) {
-  const res = await fetch(SUPA_URL + '/rest/v1/' + path, {
-    ...opts,
-    headers: {
-      'apikey': SUPA_KEY,
-      'Authorization': 'Bearer ' + SUPA_KEY,
-      'Content-Type': 'application/json',
-      'Prefer': opts.prefer || '',
-      ...(opts.headers || {}),
-    },
-  });
-  if (!res.ok) { const e = await res.text(); throw new Error(e); }
-  const t = await res.text();
-  return t ? JSON.parse(t) : null;
-}
-
-// ============ STATE ============
-const PASSWORD = 'Sporttag_2026';
-let susList = [];
-let messwerte = {};
-let selectedPosten = null;
-let selectedGruppe = null;
-let selectedKlasse = null;
-let activeFilter = { stufe: 'all', geschlecht: 'all' };
+// ═══════════════════════════════════════
+// CONFIG
+// ═══════════════════════════════════════
+const PW        = 'Sporttag_2026';
+const SUPA_URL  = 'https://dtedcfrfldptllhonaqh.supabase.co';
+const SUPA_KEY  = 'sb_publishable_TGq4V3Dpl6i4Go3M388rlg_-NEEEGn_';
 
 const POSTEN = {
-  ballweitwurf: { label: 'Ballweitwurf', einheit: 'm',      hoeher_besser: true,  icon: '🎯' },
-  ausdauerlauf: { label: 'Ausdauerlauf', einheit: 'Runden', hoeher_besser: true,  icon: '🏃' },
-  hochsprung:   { label: 'Hochsprung',   einheit: 'cm',     hoeher_besser: true,  icon: '⬆️' },
-  weitsprung:   { label: 'Weitsprung',   einheit: 'cm',     hoeher_besser: true,  icon: '↔️' },
-  schnellauf:   { label: 'Schnellauf',   einheit: 's',      hoeher_besser: false, icon: '⚡' },
+  ballweitwurf: { label:'Ballweitwurf', unit:'m',      asc:false },
+  ausdauerlauf: { label:'Ausdauerlauf', unit:'Runden',  asc:false },
+  hochsprung:   { label:'Hochsprung',   unit:'cm',      asc:false },
+  weitsprung:   { label:'Weitsprung',   unit:'cm',      asc:false },
+  schnellauf:   { label:'Schnellauf',   unit:'s',       asc:true  },
 };
 
-// ============ LOGIN ============
-async function doLogin() {
-  const pw = document.getElementById('login-pw').value;
-  if (pw === PASSWORD) {
-    document.getElementById('login-overlay').classList.add('hidden');
-    document.getElementById('main-app').classList.remove('hidden');
-    loadFromStorage();
-    showPage('erfassung');
-    // Wait for both susList and messwerte to load before restoring selection
-    await Promise.all([
-      loadSchuelerFromSupabase(),
-      loadFromSupabase(),
-    ]);
-    // Restore saved posten/gruppe/klasse AFTER data is loaded
-    const saved = getSavedPostenSetup();
-    if (saved.posten) {
-      const btn = document.querySelector(`#posten-tabs [data-val="${saved.posten}"]`);
-      if (btn) selectPosten(btn, true);
+// ═══════════════════════════════════════
+// STATE  — single source of truth
+// ═══════════════════════════════════════
+let sus    = [];   // [{vorname,name,anzeige,klasse,js,g,gruppe}]
+let data   = {};   // key→value  (key = "posten|js|gruppe|anzeige")
+let selP   = null; // selected posten
+let selG   = null; // selected gruppe
+let selK   = null; // selected klasse (jahrgangsstufe digit)
+let openI  = null; // open input index
+let fStufe = 'all';
+let fGesch = 'all';
+
+// ═══════════════════════════════════════
+// SUPABASE
+// ═══════════════════════════════════════
+async function sbReq(path, opts={}) {
+  const r = await fetch(SUPA_URL+'/rest/v1/'+path, {
+    ...opts,
+    headers:{
+      'apikey':SUPA_KEY,
+      'Authorization':'Bearer '+SUPA_KEY,
+      'Content-Type':'application/json',
+      'Prefer': opts.prefer||'',
+      ...(opts.headers||{})
     }
-    if (saved.gruppe) {
-      const btn = document.querySelector(`#gruppe-tabs [data-val="${saved.gruppe}"]`);
-      if (btn) selectGruppe(btn, true);
-    }
-    if (saved.klasse) {
-      const klBtn = document.querySelector(`.klassen-tab[data-kl="${saved.klasse}"]`);
-      if (klBtn) { selectKlasse(klBtn); }
-      else { const firstKl = document.querySelector('.klassen-tab'); if (firstKl) selectKlasse(firstKl); }
-    } else {
-      const firstKl = document.querySelector('.klassen-tab'); if (firstKl) selectKlasse(firstKl);
-    }
-    // Start polling
-    setInterval(async () => {
-      await loadFromSupabase();
-      if (document.getElementById('page-rangliste').classList.contains('active')) buildRangliste();
-      refreshSusList();
-    }, 30000);
-  } else {
-    document.getElementById('login-error').classList.add('show');
-    document.getElementById('login-pw').value = '';
-    document.getElementById('login-pw').focus();
-  }
+  });
+  if(!r.ok){ const t=await r.text(); throw new Error(t); }
+  const t=await r.text(); return t?JSON.parse(t):null;
 }
-document.getElementById('login-pw').focus();
 
-function getSavedPostenSetup() {
+async function loadSus() {
   try {
-    return JSON.parse(localStorage.getItem('sporttag_setup') || '{}');
-  } catch(e) { return {}; }
-}
-function savePostenSetup() {
-  try {
-    localStorage.setItem('sporttag_setup', JSON.stringify({ posten: selectedPosten, gruppe: selectedGruppe, klasse: selectedKlasse }));
-  } catch(e) {}
-}
-
-// ============ INLINE SELECTORS ============
-function selectPosten(el, silent) {
-  document.querySelectorAll('#posten-tabs .sel-tab').forEach(b => b.classList.remove('active'));
-  el.classList.add('active');
-  selectedPosten = el.dataset.val;
-  if (!silent) savePostenSetup();
-  loadSusList();
-}
-
-function selectGruppe(el, silent) {
-  document.querySelectorAll('#gruppe-tabs .sel-tab').forEach(b => b.classList.remove('active'));
-  el.classList.add('active');
-  selectedGruppe = el.dataset.val;
-  if (!silent) savePostenSetup();
-  loadSusList();
-}
-
-// ============ SCHÜLERLISTE VON SUPABASE ============
-async function loadSchuelerFromSupabase() {
-  setSusLoadStatus('loading', 'Schülerliste wird geladen…', '');
-  try {
-    const rows = await sbFetch('schueler?select=name,klasse,geschlecht,gruppe&order=klasse,name');
-    if (!rows || !rows.length) {
-      setSusLoadStatus('error', 'Keine Schülerliste gefunden', 'Bitte zuerst mit dem Upload-Tool hochladen.');
-      checkSetupReady(); return;
-    }
-    susList = rows.map(r => ({
-      vorname: String(r.vorname||'').trim(),
-      name: String(r.name||'').trim(),
-      anzeige: (String(r.vorname||'').trim() + ' ' + String(r.name||'').trim()).trim(),
-      klasse: String(r.klasse||'').trim(),
-      jahrgangsstufe: String(r.jahrgangsstufe||'').trim().replace(/[^1-9]/g,'').substring(0,1),
-      geschlecht: String(r.geschlecht||'').trim().toLowerCase(),
-      gruppe: String(r.gruppe||'').trim().toUpperCase(),
-    }));
-    const byKlasse = {};
-    susList.forEach(s => { byKlasse[s.klasse] = (byKlasse[s.klasse]||0)+1; });
-    const sub = Object.entries(byKlasse).sort().map(([k,v]) => `${k}: ${v}`).join(' · ');
-    setSusLoadStatus('ok', `${susList.length} Schülerinnen & Schüler geladen`, sub);
-    try { localStorage.setItem('sporttag_sus', JSON.stringify(susList)); } catch(e) {}
-    checkSetupReady();
-  } catch(e) {
-    setSusLoadStatus('error', 'Fehler beim Laden', e.message);
-    checkSetupReady();
-  }
-}
-
-function setSusLoadStatus(state, text, sub) {
-  const icons = { loading: '⏳', ok: '✅', error: '❌' };
-  const el = document.getElementById('sus-load-status');
-  if (el) {
-    el.style.background = state === 'ok' ? 'var(--green-xlight)' : state === 'error' ? '#FDE8E8' : 'var(--bg)';
-    el.style.borderColor = state === 'ok' ? 'var(--green-light)' : state === 'error' ? '#f5c0c0' : 'var(--border)';
-  }
-  const icon = document.getElementById('sus-load-icon'); if (icon) icon.textContent = icons[state] || '⏳';
-  const t = document.getElementById('sus-load-text'); if (t) t.textContent = text;
-  const s = document.getElementById('sus-load-sub'); if (s) s.textContent = sub;
-}
-
-// ============ STORAGE ============
-function saveToStorage() {
-  try {
-    localStorage.setItem('sporttag_messwerte', JSON.stringify(messwerte));
-  } catch(e) {}
-}
-
-function loadFromStorage() {
-  try {
-    const m = localStorage.getItem('sporttag_messwerte');
-    if (m) messwerte = JSON.parse(m);
-  } catch(e) {}
-}
-
-async function syncToSupabase(posten, klasse, gruppe, name, wert, jumps) {
-  setSyncStatus('syncing');
-  try {
-    await sbFetch('messwerte', {
-      method: 'POST',
-      prefer: 'resolution=merge-duplicates',
-      headers: { 'Prefer': 'resolution=merge-duplicates' },
-      body: JSON.stringify({ posten, klasse, gruppe, name,
-        wert: wert !== undefined ? wert : null,
-        jumps: jumps !== undefined ? jumps : null }),
+    setSyncBusy();
+    const rows = await sbReq('schueler?select=vorname,name,klasse,jahrgangsstufe,geschlecht,gruppe&order=name,vorname');
+    if(!rows||!rows.length){ setSyncErr(); return; }
+    sus = rows.map(r => {
+      const vn = String(r.vorname||'').trim();
+      const nn = String(r.name||'').trim();
+      // jahrgangsstufe: extract first digit only
+      const js = String(r.jahrgangsstufe||'').replace(/\D/g,'').charAt(0);
+      return {
+        vorname:  vn,
+        name:     nn,
+        anzeige:  (vn+' '+nn).trim() || nn || vn,
+        klasse:   String(r.klasse||'').trim(),
+        js,
+        g:        String(r.geschlecht||'').trim().toLowerCase(),
+        gruppe:   String(r.gruppe||'').trim().toUpperCase(),
+      };
     });
-    setSyncStatus('ok');
-  } catch(e) { console.error(e); setSyncStatus('error'); }
+    setSyncOk();
+    return true;
+  } catch(e){ setSyncErr(e.message); return false; }
 }
 
-async function loadFromSupabase() {
-  setSyncStatus('syncing');
+async function loadData() {
   try {
-    const rows = await sbFetch('messwerte?select=*');
-    if (!rows) return;
-    messwerte = {};
+    setSyncBusy();
+    const rows = await sbReq('messwerte?select=*');
+    if(!rows){ setSyncOk(); return; }
+    data = {};
     rows.forEach(r => {
-      const key = mkKey(r.posten, r.klasse, r.gruppe, r.name);
-      if (r.wert !== null) messwerte[key] = r.wert;
-      if (r.jumps !== null) messwerte[key + '||jumps'] = r.jumps;
+      const k = mk(r.posten, r.klasse, r.gruppe, r.name);
+      if(r.wert!==null) data[k] = r.wert;
+      if(r.jumps!==null) data[k+'|jumps'] = r.jumps;
     });
-    saveToStorage();
-    setSyncStatus('ok');
-  } catch(e) { console.error(e); setSyncStatus('error'); }
+    // also cache to localStorage
+    try{ localStorage.setItem('st_data', JSON.stringify(data)); }catch(_){}
+    setSyncOk();
+  } catch(e){ setSyncErr(e.message); }
 }
 
-function setSyncStatus(status) {
-  const el = document.getElementById('sync-status');
-  if (!el) return;
-  const map = {
-    syncing: { text: '⟳', cls: 'sync-syncing' },
-    ok:      { text: '✓', cls: 'sync-ok' },
-    error:   { text: '✕ Fehler', cls: 'sync-error' },
-  };
-  const s = map[status] || { text: '', cls: '' };
-  el.textContent = s.text;
-  el.className = 'sync-indicator ' + s.cls;
+async function saveVal(posten, js, gruppe, anzeige, wert, jumps) {
+  setSyncBusy();
+  try {
+    await sbReq('messwerte', {
+      method:'POST',
+      prefer:'resolution=merge-duplicates',
+      headers:{'Prefer':'resolution=merge-duplicates'},
+      body: JSON.stringify({
+        posten, klasse:js, gruppe, name:anzeige,
+        wert: wert??null,
+        jumps: jumps??null,
+      })
+    });
+    setSyncOk();
+  } catch(e){ setSyncErr(e.message); }
 }
 
-// ============ NAVIGATION ============
-function showPage(p) {
-  document.querySelectorAll('.page').forEach(x => x.classList.remove('active'));
-  document.querySelectorAll('.nav-tab').forEach(x => x.classList.remove('active'));
-  document.getElementById('page-' + p).classList.add('active');
-  const idx = ['erfassung','rangliste'].indexOf(p);
-  document.querySelectorAll('.nav-tab')[idx].classList.add('active');
-  if (p === 'rangliste') renderRangliste();
+// ═══════════════════════════════════════
+// SYNC INDICATOR
+// ═══════════════════════════════════════
+function setSyncBusy(){ setSync('⟳ Sync…','busy'); }
+function setSyncOk()  { setSync('✓ Gespeichert','ok'); }
+function setSyncErr(m){ setSync('✕ Fehler','err'); if(m) console.error('Sync err:',m); }
+function setSync(t,c) {
+  const el=document.getElementById('sync');
+  el.textContent=t; el.className='sync '+c;
 }
 
-// ============ ERFASSUNG ============
-function selectKlasse(el) {
-  document.querySelectorAll('.klassen-tab').forEach(t => t.classList.remove('active'));
-  el.classList.add('active');
-  selectedKlasse = el.dataset.kl;
-  savePostenSetup();
-  loadSusList();
-}
+// mk = key builder — uses jahrgangsstufe as "klasse" in key
+function mk(posten, js, gruppe, anzeige){ return `${posten}|${js}|${gruppe}|${anzeige}`; }
 
-function loadSusList() {
-  if (!selectedPosten || !selectedGruppe || !selectedKlasse) return;
-  // Filter by jahrgangsstufe AND gruppe
-  const kids = susList.filter(s =>
-    s.jahrgangsstufe === selectedKlasse &&
-    (s.gruppe === '' || s.gruppe === selectedGruppe)
-  );
-  const card = document.getElementById('sus-list-card');
-  const noSus = document.getElementById('erfassung-no-sus');
-
-  if (!kids.length) {
-    card.classList.add('hidden');
-    noSus.classList.remove('hidden');
-    document.getElementById('sus-progress').textContent = '';
-    // Debug info
-    const sample = susList.slice(0,3).map(s => `js="${s.jahrgangsstufe}" gr="${s.gruppe}" name="${s.anzeige}"`).join(' | ');
-    const dbg = document.getElementById('debug-info');
-    if (dbg) dbg.innerHTML = `<b>Debug:</b><br>selectedKlasse: "${selectedKlasse}"<br>selectedGruppe: "${selectedGruppe}"<br>susList.length: ${susList.length}<br>Erste 3 SuS: ${sample || '(leer)'}`;
+// ═══════════════════════════════════════
+// LOGIN
+// ═══════════════════════════════════════
+async function login() {
+  const pw = document.getElementById('lpw').value;
+  if(pw!==PW){
+    document.getElementById('lerr').classList.add('on');
+    document.getElementById('lpw').value='';
+    document.getElementById('lpw').focus();
     return;
   }
-  noSus.classList.add('hidden');
-  card.classList.remove('hidden');
+  document.getElementById('login').classList.add('off');
+  document.getElementById('app').classList.remove('hidden');
 
-  const posten = POSTEN[selectedPosten];
-  const sorted = [...kids].sort((a,b) => a.anzeige.localeCompare(b.anzeige));
-  const isWeitsprung = selectedPosten === 'weitsprung';
+  // Load cached data immediately so UI isn't blank
+  try{ const d=localStorage.getItem('st_data'); if(d) data=JSON.parse(d); }catch(_){}
 
-  document.getElementById('sus-list').innerHTML = sorted.map((s, i) => {
-    const key = mkKey(selectedPosten, selectedKlasse, selectedGruppe, s.anzeige);
+  // Load fresh from Supabase
+  await loadSus();
+  await loadData();
 
-    if (isWeitsprung) {
-      const jumps = messwerte[key + '||jumps'] || [null, null, null];
-      const best = getBestJump(jumps);
-      const hasVal = best !== null;
-      const jumpVals = [0,1,2].map(j => (jumps[j] !== null && jumps[j] !== undefined) ? jumps[j] : '');
+  // Restore last selection
+  const s = getSaved();
+  if(s.posten){ const el=document.querySelector(`#posten-chips [data-v="${s.posten}"]`); if(el) pickPosten(el,true); }
+  if(s.gruppe){ const el=document.querySelector(`#gruppe-chips [data-v="${s.gruppe}"]`); if(el) pickGruppe(el,true); }
+  if(s.klasse){ const el=document.querySelector(`#klasse-chips [data-v="${s.klasse}"]`); if(el) pickKlasse(el,true); }
+  else { const el=document.querySelector('#klasse-chips .chip'); if(el) pickKlasse(el,true); }
+
+  renderList();
+
+  // Poll every 30s
+  setInterval(async()=>{
+    await loadData();
+    renderList();
+    if(document.getElementById('rangliste').classList.contains('on')) renderRangliste();
+  }, 30000);
+}
+document.getElementById('lpw').focus();
+
+function getSaved(){ try{ return JSON.parse(localStorage.getItem('st_sel')||'{}'); }catch(_){ return {}; } }
+function savesel(){ try{ localStorage.setItem('st_sel', JSON.stringify({posten:selP,gruppe:selG,klasse:selK})); }catch(_){} }
+
+// ═══════════════════════════════════════
+// SELECTORS
+// ═══════════════════════════════════════
+function pickPosten(el, silent) {
+  document.querySelectorAll('#posten-chips .chip').forEach(c=>c.classList.remove('on'));
+  el.classList.add('on');
+  selP = el.dataset.v;
+  if(!silent){ savesel(); renderList(); }
+}
+function pickGruppe(el, silent) {
+  document.querySelectorAll('#gruppe-chips .chip').forEach(c=>c.classList.remove('on'));
+  el.classList.add('on');
+  selG = el.dataset.v;
+  if(!silent){ savesel(); renderList(); }
+}
+function pickKlasse(el, silent) {
+  document.querySelectorAll('#klasse-chips .chip').forEach(c=>c.classList.remove('on'));
+  el.classList.add('on');
+  selK = el.dataset.v;
+  if(!silent){ savesel(); renderList(); }
+}
+
+// ═══════════════════════════════════════
+// RENDER SUS LIST
+// ═══════════════════════════════════════
+function renderList() {
+  const empty = document.getElementById('sus-empty');
+  const list  = document.getElementById('sus-list');
+  const prog  = document.getElementById('progress');
+
+  if(!selP||!selG||!selK){
+    list.innerHTML=''; empty.classList.remove('hidden');
+    document.getElementById('sus-empty-msg').textContent='Posten, Gruppe und Klasse wählen.';
+    prog.textContent=''; return;
+  }
+
+  // Filter: jahrgangsstufe (js) === selK AND gruppe === selG
+  const kids = sus.filter(s => s.js===selK && s.gruppe===selG)
+                  .sort((a,b)=>a.anzeige.localeCompare(b.anzeige));
+
+  if(!kids.length){
+    list.innerHTML=''; empty.classList.remove('hidden');
+    document.getElementById('sus-empty-msg').textContent=
+      `Keine SuS in Gruppe ${selG}, ${selK}. Klasse gefunden.`;
+    prog.textContent=''; return;
+  }
+
+  empty.classList.add('hidden');
+  openI = null;
+
+  const isWS = selP==='weitsprung';
+  const pInfo = POSTEN[selP];
+
+  // Progress
+  const done = kids.filter(s=>{
+    const k=mk(selP,selK,selG,s.anzeige);
+    return isWS ? (getBest(data[k+'|jumps'])!==null) : (data[k]!==undefined);
+  }).length;
+  prog.textContent=`${done} / ${kids.length} erfasst`;
+
+  list.innerHTML = kids.map((s,i)=>{
+    const k = mk(selP, selK, selG, s.anzeige);
+    if(isWS){
+      const jumps = data[k+'|jumps']||[null,null,null];
+      const best  = getBest(jumps);
+      const hasDone = best!==null;
+      const jv = [0,1,2].map(j=>jumps[j]!==null&&jumps[j]!==undefined?jumps[j]:'');
       return `
-      <div class="sus-item ${hasVal?'has-data':''}" id="item-${i}" onclick="toggleInput(${i},'${escAttr(s.anzeige)}','${key}','cm')">
-        <div>
-          <div class="sus-name">${escHtml(s.anzeige)}</div>
-          <div class="sus-meta">${escHtml(s.klasse)} · ${s.geschlecht==='m'?'Knabe':'Mädchen'}</div>
-        </div>
-        <div class="${hasVal?'sus-value':'sus-value empty'}" id="val-${i}">
-          ${hasVal ? `${best} <span style="font-size:12px;font-weight:400;color:var(--text-3)">cm</span><span style="font-size:11px;color:var(--text-3);display:block;text-align:right">bester Versuch</span>` : '– nicht erfasst'}
-        </div>
-      </div>
-      <div class="triple-input" id="input-${i}">
-        ${[0,1,2].map(j => `
-        <div class="triple-row">
-          <span class="triple-label">Versuch ${j+1}</span>
-          <input type="number" id="num-${i}-${j}" placeholder="–" step="0.5" min="0"
-            value="${jumpVals[j]}" oninput="updateTriple(${i},'${key}')">
-          <span class="unit">cm</span>
-        </div>`).join('')}
-        <div class="triple-best" id="triple-best-${i}">
-          <span class="triple-best-label">✓ Bester Versuch zählt</span>
-          <span class="triple-best-val" id="triple-best-val-${i}">${hasVal ? best + ' cm' : '–'}</span>
-        </div>
-        <button class="btn btn-primary btn-full" onclick="saveTriple(${i},'${key}')">Speichern</button>
-      </div>`;
+<div class="sus-item ${hasDone?'done':''}" id="si${i}" onclick="toggleInput(${i})">
+  <div><div class="sus-name">${esc(s.anzeige)}</div><div class="sus-meta">${esc(s.klasse)} · ${s.g==='m'?'Knabe':'Mädchen'}</div></div>
+  <div class="${hasDone?'sus-val':'sus-val empty'}" id="sv${i}">
+    ${hasDone?`${best} <span style="font-size:11px;font-weight:400;color:var(--tx3)">cm</span>`:'–'}
+  </div>
+</div>
+<div class="triple-panel" id="ip${i}">
+  ${[0,1,2].map(j=>`
+  <div class="triple-row">
+    <span class="triple-lbl">Versuch ${j+1}</span>
+    <input type="number" id="n${i}_${j}" min="0" step="0.5" placeholder="–" value="${jv[j]}"
+      oninput="liveTriple(${i},'${k}')">
+    <span class="unit">cm</span>
+  </div>`).join('')}
+  <div class="best-bar" id="bb${i}">
+    <span class="best-lbl">✓ Bester Versuch</span>
+    <span class="best-val" id="bv${i}">${best!==null?best+' cm':'–'}</span>
+  </div>
+  <button class="btn btn-p btn-full mt8" onclick="commitTriple(${i},'${k}','${esc(s.anzeige)}')">Speichern</button>
+</div>`;
+    } else {
+      const val = data[k];
+      const has = val!==undefined;
+      return `
+<div class="sus-item ${has?'done':''}" id="si${i}" onclick="toggleInput(${i})">
+  <div><div class="sus-name">${esc(s.anzeige)}</div><div class="sus-meta">${esc(s.klasse)} · ${s.g==='m'?'Knabe':'Mädchen'}</div></div>
+  <div class="${has?'sus-val':'sus-val empty'}" id="sv${i}">
+    ${has?`${val} <span style="font-size:11px;font-weight:400;color:var(--tx3)">${pInfo.unit}</span>`:'–'}
+  </div>
+</div>
+<div class="inp-panel" id="ip${i}">
+  <input type="number" id="n${i}" min="0" step="0.01" placeholder="Wert" value="${has?val:''}"
+    onkeydown="if(event.key==='Enter')commitVal(${i},'${k}','${esc(s.anzeige)}','${pInfo.unit}')"
+    oninput="liveVal(${i},'${k}','${pInfo.unit}')">
+  <span class="unit">${pInfo.unit}</span>
+  <button class="btn btn-p" style="padding:8px 12px" onclick="commitVal(${i},'${k}','${esc(s.anzeige)}','${pInfo.unit}')">OK</button>
+</div>`;
     }
-
-    const val = messwerte[key];
-    const hasVal = val !== undefined && val !== '';
-    return `
-    <div class="sus-item ${hasVal?'has-data':''}" id="item-${i}" onclick="toggleInput(${i},'${escAttr(s.anzeige)}','${key}','${posten.einheit}')">
-      <div>
-        <div class="sus-name">${escHtml(s.anzeige)}</div>
-        <div class="sus-meta">${escHtml(s.klasse)} · ${s.geschlecht==='m'?'Knabe':'Mädchen'}</div>
-      </div>
-      <div class="${hasVal?'sus-value':'sus-value empty'}" id="val-${i}">
-        ${hasVal ? `${val} <span style="font-size:12px;font-weight:400;color:var(--text-3)">${posten.einheit}</span>` : '– nicht erfasst'}
-      </div>
-    </div>
-    <div class="inline-input" id="input-${i}">
-      <input type="number" id="num-${i}" placeholder="Wert" step="0.01" min="0"
-        value="${hasVal?val:''}"
-        onkeydown="if(event.key==='Enter')saveVal(${i},'${key}','${escAttr(s.anzeige)}','${posten.einheit}')"
-        oninput="autoSave(${i},'${key}','${posten.einheit}')">
-      <span class="unit">${posten.einheit}</span>
-      <button class="btn btn-primary" style="padding:8px 14px" onclick="saveVal(${i},'${key}','${escAttr(s.anzeige)}','${posten.einheit}')">OK</button>
-    </div>`;
   }).join('');
-
-  updateProgress();
 }
 
-function refreshSusList() {
-  if (selectedKlasse) loadSusList();
-}
-
-let openInput = null;
-function toggleInput(i, name, key, einheit) {
-  if (openInput !== null && openInput !== i) {
-    const prev = document.getElementById('input-' + openInput);
-    if (prev) prev.classList.remove('open');
-    const prevItem = document.getElementById('item-' + openInput);
-    if (prevItem) prevItem.classList.remove('active-input');
+function toggleInput(i) {
+  if(openI!==null && openI!==i){
+    document.getElementById('ip'+openI)?.classList.remove('on');
+    document.getElementById('si'+openI)?.classList.remove('open');
   }
-  const inp = document.getElementById('input-' + i);
-  const item = document.getElementById('item-' + i);
-  if (inp.classList.contains('open')) {
-    inp.classList.remove('open'); item.classList.remove('active-input'); openInput = null;
+  const ip=document.getElementById('ip'+i);
+  const si=document.getElementById('si'+i);
+  if(ip.classList.contains('on')){
+    ip.classList.remove('on'); si.classList.remove('open'); openI=null;
   } else {
-    inp.classList.add('open'); item.classList.add('active-input'); openInput = i;
-    setTimeout(() => {
-      const f = document.getElementById('num-' + i) || document.getElementById('num-' + i + '-0');
-      if (f) f.focus();
-    }, 50);
+    ip.classList.add('on'); si.classList.add('open'); openI=i;
+    setTimeout(()=>{ const f=document.getElementById('n'+i)||document.getElementById('n'+i+'_0'); f?.focus(); },40);
   }
 }
 
-function autoSave(i, key, einheit) {
-  const v = parseFloat(document.getElementById('num-' + i).value);
-  if (!isNaN(v)) { messwerte[key] = v; saveToStorage(); updateValDisplay(i, v, einheit); }
+function liveVal(i, k, unit) {
+  const v=parseFloat(document.getElementById('n'+i).value);
+  if(isNaN(v)) return;
+  data[k]=v;
+  const el=document.getElementById('sv'+i);
+  el.className='sus-val';
+  el.innerHTML=`${v} <span style="font-size:11px;font-weight:400;color:var(--tx3)">${unit}</span>`;
 }
 
-function saveVal(i, key, name, einheit) {
-  const inp = document.getElementById('num-' + i);
-  const v = parseFloat(inp.value);
-  if (isNaN(v) || v < 0) { inp.style.borderColor = '#e74c3c'; return; }
-  inp.style.borderColor = '';
-  messwerte[key] = v; saveToStorage(); updateValDisplay(i, v, einheit);
-  document.getElementById('input-' + i).classList.remove('open');
-  document.getElementById('item-' + i).classList.remove('active-input');
-  document.getElementById('item-' + i).classList.add('has-data');
-  openInput = null; updateProgress();
-  const [posten, kl, gr, nm] = key.split('||');
-  syncToSupabase(posten, kl, gr, nm, v, null);
+function commitVal(i, k, anzeige, unit) {
+  const v=parseFloat(document.getElementById('n'+i).value);
+  if(isNaN(v)||v<0) return;
+  data[k]=v;
+  document.getElementById('ip'+i).classList.remove('on');
+  document.getElementById('si'+i).classList.remove('open');
+  document.getElementById('si'+i).classList.add('done');
+  document.getElementById('sv'+i).className='sus-val';
+  document.getElementById('sv'+i).innerHTML=`${v} <span style="font-size:11px;font-weight:400;color:var(--tx3)">${unit}</span>`;
+  openI=null;
+  updateProgress();
+  saveVal(selP, selK, selG, anzeige, v, null);
 }
 
-function updateValDisplay(i, v, einheit) {
-  const el = document.getElementById('val-' + i);
-  if (!el) return;
-  el.className = 'sus-value';
-  el.innerHTML = `${v} <span style="font-size:12px;font-weight:400;color:var(--text-3)">${einheit}</span>`;
+function liveTriple(i, k) {
+  const jumps=[0,1,2].map(j=>{ const v=parseFloat(document.getElementById(`n${i}_${j}`)?.value); return isNaN(v)?null:v; });
+  data[k+'|jumps']=jumps;
+  const best=getBest(jumps);
+  if(best!==null) data[k]=best;
+  document.getElementById('bv'+i).textContent=best!==null?best+' cm':'–';
+  const el=document.getElementById('sv'+i);
+  if(best!==null){ el.className='sus-val'; el.innerHTML=`${best} <span style="font-size:11px;font-weight:400;color:var(--tx3)">cm</span>`; }
+}
+
+function commitTriple(i, k, anzeige) {
+  liveTriple(i, k);
+  const jumps=data[k+'|jumps']||[];
+  const best=getBest(jumps);
+  document.getElementById('ip'+i).classList.remove('on');
+  document.getElementById('si'+i).classList.remove('open');
+  if(best!==null) document.getElementById('si'+i).classList.add('done');
+  openI=null;
+  updateProgress();
+  saveVal('weitsprung', selK, selG, anzeige, best, jumps);
+}
+
+function getBest(jumps) {
+  if(!jumps) return null;
+  const vs=jumps.filter(v=>v!==null&&v!==undefined&&!isNaN(v));
+  return vs.length?Math.max(...vs):null;
 }
 
 function updateProgress() {
-  if (!selectedPosten || !selectedGruppe || !selectedKlasse) return;
-  const kids = susList.filter(s => s.jahrgangsstufe === selectedKlasse && (s.gruppe===''||s.gruppe===selectedGruppe));
-  const filled = kids.filter(s => {
-    const key = mkKey(selectedPosten, selectedKlasse, selectedGruppe, s.anzeige);
-    if (selectedPosten === 'weitsprung') return getBestJump(messwerte[key + '||jumps'] || []) !== null;
-    return messwerte[key] !== undefined;
-  }).length;
-  document.getElementById('sus-progress').textContent = `${filled} / ${kids.length} erfasst`;
+  if(!selP||!selG||!selK) return;
+  const isWS=selP==='weitsprung';
+  const kids=sus.filter(s=>s.js===selK&&s.gruppe===selG);
+  const done=kids.filter(s=>{ const k=mk(selP,selK,selG,s.anzeige); return isWS?(getBest(data[k+'|jumps'])!==null):(data[k]!==undefined); }).length;
+  document.getElementById('progress').textContent=`${done} / ${kids.length} erfasst`;
 }
 
-function mkKey(posten, klasse, gruppe, name) { return `${posten}||${klasse}||${gruppe}||${name}`; }
-
-function getBestJump(jumps) {
-  if (!jumps) return null;
-  const vals = jumps.filter(v => v !== null && v !== undefined && v !== '' && !isNaN(v));
-  return vals.length ? Math.max(...vals) : null;
+// ═══════════════════════════════════════
+// PAGE NAVIGATION
+// ═══════════════════════════════════════
+function gotoPage(id, btn) {
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('on'));
+  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('on'));
+  document.getElementById(id).classList.add('on');
+  btn.classList.add('on');
+  if(id==='rangliste') renderRangliste();
 }
 
-function updateTriple(i, key) {
-  const jumps = [0,1,2].map(j => {
-    const v = parseFloat(document.getElementById(`num-${i}-${j}`)?.value);
-    return isNaN(v) ? null : v;
-  });
-  messwerte[key + '||jumps'] = jumps;
-  const best = getBestJump(jumps);
-  const bestEl = document.getElementById('triple-best-val-' + i);
-  if (bestEl) bestEl.textContent = best !== null ? best + ' cm' : '–';
-  if (best !== null) messwerte[key] = best;
-  saveToStorage();
-}
-
-function saveTriple(i, key) {
-  updateTriple(i, key);
-  const jumps = messwerte[key + '||jumps'] || [];
-  const best = getBestJump(jumps);
-  const item = document.getElementById('item-' + i);
-  const valEl = document.getElementById('val-' + i);
-  if (best !== null) {
-    item.classList.add('has-data');
-    valEl.className = 'sus-value';
-    valEl.innerHTML = `${best} <span style="font-size:12px;font-weight:400;color:var(--text-3)">cm</span><span style="font-size:11px;color:var(--text-3);display:block;text-align:right">bester Versuch</span>`;
-  }
-  document.getElementById('input-' + i).classList.remove('open');
-  item.classList.remove('active-input');
-  openInput = null; updateProgress();
-  const [posten, kl, gr, nm] = key.split('||');
-  syncToSupabase(posten, kl, gr, nm, best, jumps);
-}
-
-// ============ RANGLISTE ============
-function renderRangliste() {
-  const hasData = Object.keys(messwerte).some(k => !k.endsWith('||jumps'));
-  document.getElementById('rangliste-no-data').classList.toggle('hidden', hasData);
-  document.getElementById('rangliste-content').classList.toggle('hidden', !hasData);
-  if (hasData) buildRangliste();
-}
-
+// ═══════════════════════════════════════
+// RANGLISTE
+// ═══════════════════════════════════════
 function setFilter(dim, val, el) {
-  activeFilter[dim] = val;
-  document.querySelectorAll('#filter-' + dim + ' .filter-chip').forEach(c => c.classList.remove('active'));
-  el.classList.add('active');
+  if(dim==='stufe') fStufe=val; else fGesch=val;
+  document.querySelectorAll(`#f-${dim==='stufe'?'stufe':'gesch'} .fc`).forEach(c=>c.classList.remove('on'));
+  el.classList.add('on');
   buildRangliste();
 }
 
+function renderRangliste() {
+  const hasData = Object.keys(data).some(k=>!k.endsWith('|jumps'));
+  document.getElementById('rl-no-data').classList.toggle('hidden', hasData);
+  document.getElementById('rl-content').classList.toggle('hidden', !hasData);
+  if(hasData) buildRangliste();
+}
+
 function buildRangliste() {
-  const stufen = activeFilter.stufe === 'all' ? ['1','2','3','4','5','6'] : [activeFilter.stufe];
-  const geschlechter = activeFilter.geschlecht === 'all' ? ['m','w'] : [activeFilter.geschlecht];
-  let html = '';
-  for (const kl of stufen) {
-    for (const g of geschlechter) {
-      const kids = susList.filter(s => s.jahrgangsstufe === kl && s.geschlecht === g);
-      if (!kids.length) continue;
-      html += renderRankGroup(kl, g, calcRanking(kids, kl));
+  const stufen = fStufe==='all' ? ['1','2','3','4','5','6'] : [fStufe];
+  const geschl = fGesch==='all' ? ['m','w'] : [fGesch];
+  let html='';
+  for(const js of stufen){
+    for(const g of geschl){
+      const kids=sus.filter(s=>s.js===js&&s.g===g);
+      if(!kids.length) continue;
+      html+=renderGroup(js,g,calcRanking(kids,js));
     }
   }
-  document.getElementById('rangliste-body').innerHTML = html || '<div class="card text-center text-sm">Keine Daten für diese Auswahl.</div>';
+  document.getElementById('rl-body').innerHTML = html||'<div class="card txt-c tx-sm">Keine Daten für diese Auswahl.</div>';
 }
 
-function calcRanking(kids, kl) {
-  const results = kids.map(kid => {
-    let totalRank = 0, diszDetails = [], complete = true;
-    for (const [pKey, pInfo] of Object.entries(POSTEN)) {
-      const valA = messwerte[mkKey(pKey, kl, 'A', kid.anzeige)];
-      const valB = messwerte[mkKey(pKey, kl, 'B', kid.anzeige)];
-      const val = valA !== undefined ? valA : valB;
-      if (val === undefined) complete = false;
-      diszDetails.push({ posten: pKey, label: pInfo.label, val, einheit: pInfo.einheit });
+function calcRanking(kids, js) {
+  const results = kids.map(kid=>{
+    let sum=0, details=[], complete=true;
+    for(const [pk,pi] of Object.entries(POSTEN)){
+      const kA=mk(pk,js,'A',kid.anzeige), kB=mk(pk,js,'B',kid.anzeige);
+      const v = data[kA]!==undefined ? data[kA] : (data[kB]!==undefined ? data[kB] : undefined);
+      if(v===undefined) complete=false;
+      details.push({pk,label:pi.label,v,unit:pi.unit});
     }
-    return { kid, diszDetails, totalRank, complete };
+    return {kid,sum,details,complete};
   });
-  for (const [pKey, pInfo] of Object.entries(POSTEN)) {
-    const withVal = results.filter(r => r.diszDetails.find(d => d.posten === pKey)?.val !== undefined);
-    withVal.sort((a, b) => {
-      const av = a.diszDetails.find(d => d.posten === pKey).val;
-      const bv = b.diszDetails.find(d => d.posten === pKey).val;
-      return pInfo.hoeher_besser ? bv - av : av - bv;
+  for(const [pk,pi] of Object.entries(POSTEN)){
+    const wv=results.filter(r=>r.details.find(d=>d.pk===pk)?.v!==undefined);
+    wv.sort((a,b)=>{
+      const av=a.details.find(d=>d.pk===pk).v;
+      const bv=b.details.find(d=>d.pk===pk).v;
+      return pi.asc ? av-bv : bv-av;
     });
-    withVal.forEach((r, i) => { r.totalRank += (i + 1); });
-    const penalty = withVal.length + 1;
-    results.filter(r => r.diszDetails.find(d => d.posten === pKey)?.val === undefined)
-      .forEach(r => { r.totalRank += penalty; });
+    wv.forEach((r,i)=>r.sum+=(i+1));
+    const pen=wv.length+1;
+    results.filter(r=>r.details.find(d=>d.pk===pk)?.v===undefined).forEach(r=>r.sum+=pen);
   }
-  results.sort((a, b) => a.totalRank - b.totalRank);
-  return results;
+  return results.sort((a,b)=>a.sum-b.sum);
 }
 
-function renderRankGroup(kl, g, results) {
-  const gLabel = g === 'm' ? 'Knaben' : 'Mädchen';
-  const gBadge = g === 'm' ? 'badge-m' : 'badge-f';
-  const medals = ['🥇','🥈','🥉'];
-  const rankClass = ['gold','silver','bronze'];
-  const rows = results.map((r, i) => {
-    const detailStr = r.diszDetails.map(d => `${d.label}: ${d.val !== undefined ? d.val + ' ' + d.einheit : '–'}`).join(' · ');
-    return `
-    <div class="rank-row ${i < 3 ? 'rank-'+(i+1) : ''}">
-      <div class="rank-num ${i < 3 ? rankClass[i] : 'normal'}">${i < 3 ? medals[i] : (i+1)+'.'}</div>
-      <div style="flex:1;min-width:0;">
-        <div class="rank-name">${escHtml(r.kid.anzeige)}</div>
-        <div class="rank-detail">${detailStr}</div>
+function renderGroup(js, g, results) {
+  const gLabel=g==='m'?'Knaben':'Mädchen';
+  const gCls  =g==='m'?'bm':'bw';
+  const medals=['🥇','🥈','🥉'];
+  const rcls  =['gold','silver','bronze'];
+  const rows=results.map((r,i)=>{
+    const det=r.details.map(d=>`${d.label}: ${d.v!==undefined?d.v+' '+d.unit:'–'}`).join(' · ');
+    return `<div class="rank-row ${i<3?'r'+(i+1):''}">
+      <div class="rank-num ${i<3?rcls[i]:'normal'}">${i<3?medals[i]:(i+1)+'.'}</div>
+      <div style="flex:1;min-width:0">
+        <div class="rank-name">${esc(r.kid.anzeige)}</div>
+        <div class="rank-detail">${det}</div>
       </div>
-      <div class="rank-score" title="Summe der Einzelränge">${r.totalRank}</div>
+      <div class="rank-score">${r.sum}</div>
     </div>`;
   }).join('');
-  const incomplete = results.some(r => !r.complete)
-    ? `<div class="incomplete-hint">⚠️ Nicht alle Disziplinen erfasst – Rangliste vorläufig</div>` : '';
-  return `
-  <div class="rangliste-group">
-    <div class="rangliste-header">
-      <span class="rangliste-title">${kl}. Klasse</span>
-      <span class="badge ${gBadge}">${gLabel}</span>
-    </div>
-    ${incomplete}${rows}
+  const inc=results.some(r=>!r.complete)?`<div class="incomplete">⚠️ Nicht alle Disziplinen erfasst – vorläufig</div>`:'';
+  return `<div class="rank-grp">
+    <div class="rank-hdr"><span class="rank-hdr-title">${js}. Klasse</span><span class="badge ${gCls}">${gLabel}</span></div>
+    ${inc}${rows}
   </div>`;
 }
 
-// ============ EXPORT ============
+async function doRefresh() {
+  await loadData();
+  renderRangliste();
+}
 
-// --- Helper: build ranking rows for given klassen ---
-function buildRankRows(klassen) {
-  const HEADER = ['Klasse','Geschlecht','Rang','Name','Rang-Summe',
+// ═══════════════════════════════════════
+// EXPORT
+// ═══════════════════════════════════════
+function toggleExp(e) {
+  e.stopPropagation();
+  buildExpMenu();
+  document.getElementById('exp-menu').classList.toggle('on');
+}
+function closeExp() { document.getElementById('exp-menu').classList.remove('on'); }
+document.addEventListener('click', e=>{ if(!document.getElementById('exp-wrap')?.contains(e.target)) closeExp(); });
+
+function buildExpMenu() {
+  const klassen=[...new Set(sus.map(s=>s.klasse).filter(Boolean))].sort();
+  document.getElementById('exp-klassen').innerHTML=klassen.map(kl=>
+    `<button class="exp-item" onclick="expKlasse('${kl.replace(/'/g,"\\'")}');closeExp()"><span class="ei">📋</span><div><div class="el">${esc(kl)}</div></div></button>`
+  ).join('');
+  const stufen=[...new Set(sus.map(s=>s.js).filter(Boolean))].sort();
+  document.getElementById('exp-stufen').innerHTML=stufen.map(st=>
+    `<button class="exp-item" onclick="expStufe('${st}');closeExp()"><span class="ei">🏫</span><div><div class="el">${st}. Klasse (alle)</div></div></button>`
+  ).join('');
+}
+
+function buildRankSheet(jsArr) {
+  const H=['Klasse','Geschlecht','Rang','Name','Rang-Summe',
     'Ballweitwurf (m)','Ausdauerlauf (Rd.)','Hochsprung (cm)',
     'Weitsprung best (cm)','WS V1','WS V2','WS V3','Schnellauf (s)'];
-  const rows = [HEADER];
-  for (const kl of klassen) {
-    for (const g of ['m','w']) {
-      const kids = susList.filter(s => s.jahrgangsstufe === kl && s.geschlecht === g);
-      if (!kids.length) continue;
-      calcRanking(kids, kl).forEach((r, i) => {
-        const postenKeys = Object.keys(POSTEN);
-        const vals = postenKeys.map(p => {
-          const v = messwerte[mkKey(p, kl, 'A', r.kid.anzeige)] ?? messwerte[mkKey(p, kl, 'B', r.kid.anzeige)];
-          return v !== undefined ? v : '';
+  const rows=[H];
+  for(const js of jsArr){
+    for(const g of ['m','w']){
+      const kids=sus.filter(s=>s.js===js&&s.g===g);
+      if(!kids.length) continue;
+      calcRanking(kids,js).forEach((r,i)=>{
+        const pks=Object.keys(POSTEN);
+        const vals=pks.map(pk=>{
+          const v=data[mk(pk,js,'A',r.kid.anzeige)]??data[mk(pk,js,'B',r.kid.anzeige)];
+          return v!==undefined?v:'';
         });
-        const wKey  = mkKey('weitsprung', kl, 'A', r.kid.anzeige) + '||jumps';
-        const wKeyB = mkKey('weitsprung', kl, 'B', r.kid.anzeige) + '||jumps';
-        const jumps = messwerte[wKey] || messwerte[wKeyB] || [null,null,null];
-        vals.splice(postenKeys.indexOf('weitsprung') + 1, 0, jumps[0]??'', jumps[1]??'', jumps[2]??'');
-        rows.push([kl+'. Kl.', g==='m'?'Knaben':'Mädchen', i+1, r.kid.anzeige, r.totalRank, ...vals]);
+        const wkA=mk('weitsprung',js,'A',r.kid.anzeige)+'|jumps';
+        const wkB=mk('weitsprung',js,'B',r.kid.anzeige)+'|jumps';
+        const j=data[wkA]||data[wkB]||[null,null,null];
+        vals.splice(pks.indexOf('weitsprung')+1,0,j[0]??'',j[1]??'',j[2]??'');
+        rows.push([js+'. Kl.',g==='m'?'Knaben':'Mädchen',i+1,r.kid.anzeige,r.sum,...vals]);
       });
     }
   }
   return rows;
 }
 
-// --- Helper: build messwerte rows for given klassen ---
-function buildMesswertRows(klassen) {
-  const HEADER = ['Name','Klasse','Geschlecht','Posten','Gruppe','Wert','Einheit','V1','V2','V3'];
-  const rows = [HEADER];
-  Object.entries(messwerte).forEach(([key, val]) => {
-    if (key.endsWith('||jumps')) return;
-    const [posten, klasse, gruppe, name] = key.split('||');
-    if (!POSTEN[posten]) return;
-    if (!klassen.includes(klasse)) return;
-    const sus = susList.find(s => s.anzeige === name);
-    if (!sus) return;
-    let v1='',v2='',v3='';
-    if (posten === 'weitsprung') { const j = messwerte[key+'||jumps']||[]; v1=j[0]??''; v2=j[1]??''; v3=j[2]??''; }
-    rows.push([name, sus.klasse, sus.geschlecht==='m'?'Knaben':'Mädchen',
-      POSTEN[posten].label, gruppe, val, POSTEN[posten].einheit, v1, v2, v3]);
+function buildDetailSheet(kids, js) {
+  const pks=Object.keys(POSTEN);
+  const H=['Name','Klasse','Gruppe','Geschlecht',
+    ...pks.flatMap(pk=>pk==='weitsprung'?['Weitsprung best (cm)','WS V1','WS V2','WS V3']:[`${POSTEN[pk].label} (${POSTEN[pk].unit})`])];
+  const rows=[H];
+  kids.sort((a,b)=>a.anzeige.localeCompare(b.anzeige)).forEach(kid=>{
+    const row=[kid.anzeige,kid.klasse,kid.gruppe,kid.g==='m'?'Knabe':'Mädchen'];
+    pks.forEach(pk=>{
+      const v=data[mk(pk,js,'A',kid.anzeige)]??data[mk(pk,js,'B',kid.anzeige)]??'';
+      if(pk==='weitsprung'){
+        const jA=data[mk(pk,js,'A',kid.anzeige)+'|jumps']||data[mk(pk,js,'B',kid.anzeige)+'|jumps']||[null,null,null];
+        row.push(v,jA[0]??'',jA[1]??'',jA[2]??'');
+      } else row.push(v);
+    });
+    rows.push(row);
   });
   return rows;
 }
 
-// --- Gesamtexport Excel ---
-function exportExcel() {
-  if (!susList.length) { alert('Keine Schülerliste geladen.'); return; }
-  const wb = XLSX.utils.book_new();
-  const allStufen = [...new Set(susList.map(s=>s.jahrgangsstufe).filter(Boolean))].sort();
-  XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(buildRankRows(allStufen)), 'Rangliste');
-  XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(buildMesswertRows(allStufen)), 'Rohdaten');
-  XLSX.writeFile(wb, 'Sporttag_Rangliste.xlsx');
-}
-
-// --- Gesamtexport CSV ---
-function exportCSV() {
-  const allStufen2 = [...new Set(susList.map(s=>s.jahrgangsstufe).filter(Boolean))].sort();
-  const rows = buildMesswertRows(allStufen2);
-  const csv = rows.map(r => r.map(c => `"${String(c).replace(/"/g,'""')}"`).join(',')).join('\n');
-  const blob = new Blob(['\uFEFF'+csv], {type:'text/csv;charset=utf-8;'});
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement('a'); a.href=url; a.download='Sporttag_Rohdaten.csv'; a.click();
-  URL.revokeObjectURL(url);
-}
-
-// --- Export einzelne Klasse ---
-function exportKlasse(kl) {
-  if (!susList.length) { alert('Keine Schülerliste geladen.'); return; }
-  const wb = XLSX.utils.book_new();
-
-  // Sheet 1: Rangliste der Klasse
-  const jsKl = susList.find(s=>s.klasse===kl)?.jahrgangsstufe;
-  XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(jsKl ? buildRankRows([jsKl]) : [[]]), 'Rangliste');
-
-  // Sheet 2: Messwerte pro Disziplin (übersichtliche Querdarstellung)
-  const postenKeys = Object.keys(POSTEN);
-  const header = ['Name', 'Gruppe', 'Geschlecht', ...postenKeys.map(p => {
-    if (p === 'weitsprung') return [`Weitsprung best (cm)`, 'WS V1', 'WS V2', 'WS V3'];
-    return `${POSTEN[p].label} (${POSTEN[p].einheit})`;
-  }).flat()];
-  const detailRows = [header];
-  const kids = susList.filter(s => s.klasse === kl).sort((a,b) => a.anzeige.localeCompare(b.anzeige));
-  kids.forEach(kid => {
-    const row = [kid.anzeige, kid.gruppe || '', kid.geschlecht === 'm' ? 'Knabe' : 'Mädchen'];
-    postenKeys.forEach(p => {
-      const v = messwerte[mkKey(p, kid.jahrgangsstufe, 'A', kid.anzeige)] ?? messwerte[mkKey(p, kid.jahrgangsstufe, 'B', kid.anzeige)] ?? '';
-      if (p === 'weitsprung') {
-        const wKey = mkKey('weitsprung', kid.jahrgangsstufe, 'A', kid.anzeige) + '||jumps';
-        const wKeyB = mkKey('weitsprung', kid.jahrgangsstufe, 'B', kid.anzeige) + '||jumps';
-        const jumps = messwerte[wKey] || messwerte[wKeyB] || [null,null,null];
-        row.push(v, jumps[0]??'', jumps[1]??'', jumps[2]??'');
-      } else {
-        row.push(v);
-      }
-    });
-    detailRows.push(row);
+function expAll() {
+  if(!sus.length){ alert('Keine Schülerliste.'); return; }
+  const wb=XLSX.utils.book_new();
+  const jsAll=[...new Set(sus.map(s=>s.js).filter(Boolean))].sort();
+  XLSX.utils.book_append_sheet(wb,XLSX.utils.aoa_to_sheet(buildRankSheet(jsAll)),'Rangliste');
+  const rawH=['Name','Klasse','Jahrgangsstufe','Geschlecht','Posten','Gruppe','Wert','Einheit','V1','V2','V3'];
+  const rawR=[rawH];
+  Object.entries(data).forEach(([k,v])=>{
+    if(k.endsWith('|jumps')) return;
+    const [pk,js,gr,nm]=k.split('|');
+    if(!POSTEN[pk]) return;
+    const s=sus.find(x=>x.anzeige===nm);
+    if(!s) return;
+    let v1='',v2='',v3='';
+    if(pk==='weitsprung'){ const j=data[k+'|jumps']||[]; v1=j[0]??'';v2=j[1]??'';v3=j[2]??''; }
+    rawR.push([nm,s.klasse,js,s.g==='m'?'Knaben':'Mädchen',POSTEN[pk].label,gr,v,POSTEN[pk].unit,v1,v2,v3]);
   });
-  const safeKl = kl.replace(/[\/\\:*?"<>|]/g,'_').substring(0,28);
-  XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(detailRows), 'Messwerte');
-
-  XLSX.writeFile(wb, `Sporttag_${safeKl}.xlsx`);
+  XLSX.utils.book_append_sheet(wb,XLSX.utils.aoa_to_sheet(rawR),'Rohdaten');
+  XLSX.writeFile(wb,'Sporttag_Rangliste.xlsx');
 }
 
-// ============ EXPORT MENU ============
-function buildExportDropdown() {
-  // By Klasse (Klassenverband)
-  const klassen = [...new Set(susList.map(s=>s.klasse).filter(Boolean))].sort();
-  document.getElementById('export-klassen-items').innerHTML = klassen.map(kl =>
-    `<button class="export-dropdown-item" onclick="exportKlasse('${kl.replace(/'/g,"\\'")}');closeExportMenu()">
-      <span class="item-icon">📋</span><div><div class="item-label">${kl}</div></div>
-    </button>`
-  ).join('') || '<div style="padding:8px 14px;font-size:12px;color:var(--text-3)">Keine Daten</div>';
-
-  // By Jahrgangsstufe (alle SuS dieser Stufe)
-  const stufen = [...new Set(susList.map(s=>s.jahrgangsstufe).filter(Boolean))].sort();
-  document.getElementById('export-stufen-items').innerHTML = stufen.map(st =>
-    `<button class="export-dropdown-item" onclick="exportStufe('${st}');closeExportMenu()">
-      <span class="item-icon">🏫</span><div><div class="item-label">${st}. Klasse (alle)</div></div>
-    </button>`
-  ).join('') || '<div style="padding:8px 14px;font-size:12px;color:var(--text-3)">Keine Daten</div>';
-}
-
-function exportStufe(stufe) {
-  if (!susList.length) { alert('Keine Schülerliste geladen.'); return; }
-  const wb = XLSX.utils.book_new();
-  XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(buildRankRows([stufe])), 'Rangliste');
-  const postenKeys = Object.keys(POSTEN);
-  const header = ['Name', 'Klasse', 'Gruppe', 'Geschlecht', ...postenKeys.map(p => {
-    if (p === 'weitsprung') return ['Weitsprung best (cm)', 'WS V1', 'WS V2', 'WS V3'];
-    return `${POSTEN[p].label} (${POSTEN[p].einheit})`;
-  }).flat()];
-  const detailRows = [header];
-  const kids = susList.filter(s => s.jahrgangsstufe === stufe).sort((a,b) => a.anzeige.localeCompare(b.anzeige));
-  kids.forEach(kid => {
-    const row = [kid.anzeige, kid.klasse, kid.gruppe || '', kid.geschlecht === 'm' ? 'Knabe' : 'Mädchen'];
-    postenKeys.forEach(p => {
-      const v = messwerte[mkKey(p, stufe, 'A', kid.anzeige)] ?? messwerte[mkKey(p, stufe, 'B', kid.anzeige)] ?? '';
-      if (p === 'weitsprung') {
-        const wKey = mkKey('weitsprung', stufe, 'A', kid.anzeige) + '||jumps';
-        const wKeyB = mkKey('weitsprung', stufe, 'B', kid.anzeige) + '||jumps';
-        const jumps = messwerte[wKey] || messwerte[wKeyB] || [null,null,null];
-        row.push(v, jumps[0]??'', jumps[1]??'', jumps[2]??'');
-      } else { row.push(v); }
-    });
-    detailRows.push(row);
+function expCSV() {
+  const H=['Name','Klasse','Jahrgangsstufe','Geschlecht','Posten','Gruppe','Wert','Einheit','V1','V2','V3'];
+  const rows=[H];
+  Object.entries(data).forEach(([k,v])=>{
+    if(k.endsWith('|jumps')) return;
+    const [pk,js,gr,nm]=k.split('|');
+    if(!POSTEN[pk]) return;
+    const s=sus.find(x=>x.anzeige===nm);
+    if(!s) return;
+    let v1='',v2='',v3='';
+    if(pk==='weitsprung'){ const j=data[k+'|jumps']||[]; v1=j[0]??'';v2=j[1]??'';v3=j[2]??''; }
+    rows.push([nm,s.klasse,js,s.g,POSTEN[pk].label,gr,v,POSTEN[pk].unit,v1,v2,v3]);
   });
-  XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(detailRows), 'Messwerte');
-  XLSX.writeFile(wb, `Sporttag_Jahrgangsstufe_${stufe}.xlsx`);
+  const csv=rows.map(r=>r.map(c=>`"${String(c).replace(/"/g,'""')}"`).join(',')).join('\n');
+  const blob=new Blob(['\uFEFF'+csv],{type:'text/csv;charset=utf-8;'});
+  const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download='Sporttag_Rohdaten.csv'; a.click();
 }
 
-function toggleExportMenu(e) {
-  e.stopPropagation();
-  buildExportDropdown();
-  const menu = document.getElementById('export-menu');
-  const arrow = document.getElementById('export-arrow');
-  const isOpen = menu.classList.contains('open');
-  menu.classList.toggle('open', !isOpen);
-  arrow.textContent = isOpen ? '▼' : '▲';
+function expKlasse(kl) {
+  if(!sus.length){ alert('Keine Schülerliste.'); return; }
+  const kids=sus.filter(s=>s.klasse===kl);
+  if(!kids.length){ alert('Keine SuS in dieser Klasse.'); return; }
+  const jsArr=[...new Set(kids.map(s=>s.js).filter(Boolean))].sort();
+  const wb=XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb,XLSX.utils.aoa_to_sheet(buildRankSheet(jsArr)),'Rangliste');
+  jsArr.forEach(js=>{
+    const kidsJs=kids.filter(s=>s.js===js);
+    if(kidsJs.length) XLSX.utils.book_append_sheet(wb,XLSX.utils.aoa_to_sheet(buildDetailSheet(kidsJs,js)),`Messwerte JS${js}`);
+  });
+  const safe=kl.replace(/[\/\\:*?"<>|]/g,'_').substring(0,28);
+  XLSX.writeFile(wb,`Sporttag_${safe}.xlsx`);
 }
-function closeExportMenu() {
-  document.getElementById('export-menu').classList.remove('open');
-  document.getElementById('export-arrow').textContent = '▼';
-}
-document.addEventListener('click', e => {
-  if (!document.getElementById('export-dropdown')?.contains(e.target)) closeExportMenu();
-});
 
-// ============ UTILS ============
-function escHtml(s) { return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
-function escAttr(s) { return String(s).replace(/'/g,"\\'"); }
+function expStufe(js) {
+  if(!sus.length){ alert('Keine Schülerliste.'); return; }
+  const kids=sus.filter(s=>s.js===js);
+  if(!kids.length){ alert('Keine SuS in dieser Stufe.'); return; }
+  const wb=XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb,XLSX.utils.aoa_to_sheet(buildRankSheet([js])),'Rangliste');
+  XLSX.utils.book_append_sheet(wb,XLSX.utils.aoa_to_sheet(buildDetailSheet(kids,js)),'Messwerte');
+  XLSX.writeFile(wb,`Sporttag_Stufe_${js}.xlsx`);
+}
+
+// ═══════════════════════════════════════
+// UTILS
+// ═══════════════════════════════════════
+function esc(s){ return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
 </script>
 </body>
 </html>
