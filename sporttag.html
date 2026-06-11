@@ -723,14 +723,9 @@ function commitVal(i, k, anzeige, unit) {
   const v=parseFloat(document.getElementById('n'+i).value);
   if(isNaN(v)||v<0) return;
   data[k]=v;
-  document.getElementById('ip'+i).classList.remove('on');
-  document.getElementById('si'+i).classList.remove('open');
-  document.getElementById('si'+i).classList.add('done');
-  document.getElementById('sv'+i).className='sus-val';
-  document.getElementById('sv'+i).innerHTML=`${v} <span style="font-size:11px;font-weight:400;color:var(--tx3)">${unit}</span>`;
   openI=null;
-  updateProgress();
   saveVal(selP, selK, selG, anzeige, v, null);
+  renderList();
 }
 
 function liveTriple(i, k) {
@@ -747,12 +742,9 @@ function commitTriple(i, k, anzeige) {
   liveTriple(i, k);
   const jumps=data[k+'|jumps']||[];
   const best=getBest(jumps);
-  document.getElementById('ip'+i).classList.remove('on');
-  document.getElementById('si'+i).classList.remove('open');
-  if(best!==null) document.getElementById('si'+i).classList.add('done');
   openI=null;
-  updateProgress();
   saveVal('weitsprung', selK, selG, anzeige, best, jumps);
+  renderList();
 }
 
 async function deleteVal(i, k, anzeige, isWS) {
@@ -1060,10 +1052,9 @@ function commitCounter(i, k, anzeige) {
   const v = parseInt(document.getElementById('cn'+i).value);
   if(isNaN(v)||v<0) return;
   data[k] = v;
-  updateCounterDisplay(i, v);
-  document.getElementById('cm'+i).classList.remove('on');
-  // Manual commit saves immediately (no debounce needed)
+  openI=null;
   saveVal('ausdauerlauf', selK, selG, anzeige, v, null);
+  renderList();
 }
 function updateCounterDisplay(i, v) {
   const el = document.getElementById('cv'+i);
