@@ -845,7 +845,16 @@ function calcRanking(kids, js) {
       const bv=b.details.find(d=>d.pk===pk).v;
       return pi.asc ? av-bv : bv-av;
     });
-    wv.forEach((r,i)=>r.sum+=(i+1));
+    // Assign dense ranks: same value → same rank (no skipped ranks)
+    let rank=1;
+    for(let i=0;i<wv.length;i++){
+      if(i>0){
+        const prev=wv[i-1].details.find(d=>d.pk===pk).v;
+        const curr=wv[i].details.find(d=>d.pk===pk).v;
+        if(curr!==prev) rank=i+1; // only advance rank if value differs
+      }
+      wv[i].sum+=rank;
+    }
     const pen=wv.length+1;
     results.filter(r=>r.details.find(d=>d.pk===pk)?.v===undefined).forEach(r=>r.sum+=pen);
   }
