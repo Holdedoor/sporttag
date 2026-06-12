@@ -1,0 +1,1342 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Sporttag 2026</title>
+<style>
+:root {
+  --g9:#1a3326;--g7:#2D6A4F;--g5:#40916C;--g3:#52B788;--g1:#D8F3DC;
+  --a7:#b85c1a;--a3:#E9762B;--a1:#FDE8D5;
+  --bg:#F4F7F4;--sur:#fff;--bdr:#dde8dc;
+  --tx:#1a2e1e;--tx2:#4a6350;--tx3:#8aaa8e;
+  --r:10px;--sh:0 1px 8px rgba(26,50,38,.07);
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:system-ui,-apple-system,sans-serif;background:var(--bg);color:var(--tx);min-height:100vh}
+
+/* ── LOGIN ── */
+#login{position:fixed;inset:0;background:var(--g7);display:flex;align-items:center;justify-content:center;z-index:999}
+#login.off{display:none}
+.lbox{background:#fff;border-radius:16px;padding:36px 28px;width:min(340px,90vw);text-align:center;box-shadow:0 8px 40px rgba(0,0,0,.18)}
+.lbox .ico{font-size:38px;margin-bottom:10px}
+.lbox h1{font-size:20px;font-weight:700;margin-bottom:4px}
+.lbox p{font-size:13px;color:var(--tx3);margin-bottom:20px}
+.lbox input{width:100%;padding:11px;border:2px solid var(--bdr);border-radius:8px;font-size:16px;text-align:center;letter-spacing:.1em;margin-bottom:10px;background:var(--bg)}
+.lbox input:focus{outline:none;border-color:var(--g3)}
+.lerr{font-size:13px;color:#c0392b;background:#fde8e8;border-radius:6px;padding:7px 12px;margin-bottom:10px;display:none}
+.lerr.on{display:block}
+
+/* ── NAV ── */
+.nav{background:var(--g7);color:#fff;height:50px;display:flex;align-items:center;justify-content:space-between;padding:0 16px;position:sticky;top:0;z-index:100}
+.nav-title{font-size:15px;font-weight:600}
+.sync{font-size:11px;padding:3px 8px;border-radius:20px}
+.sync.ok{background:rgba(255,255,255,.2);color:#fff}
+.sync.err{background:#fde8e8;color:#c0392b}
+.sync.busy{background:rgba(255,255,255,.15);color:rgba(255,255,255,.8)}
+.tabs-bar{background:var(--g5);display:flex;position:sticky;top:50px;z-index:99}
+.tab{flex:1;background:none;border:none;color:rgba(255,255,255,.65);font-size:14px;font-weight:500;padding:10px;cursor:pointer;border-bottom:3px solid transparent;transition:all .15s}
+.tab:hover{color:#fff;background:rgba(255,255,255,.08)}
+.tab.on{color:#fff;border-bottom-color:#fff;background:rgba(255,255,255,.1)}
+
+/* ── LAYOUT ── */
+.page{display:none;max-width:640px;margin:0 auto;padding:16px 14px 60px}
+.page.on{display:block}
+.card{background:var(--sur);border:1px solid var(--bdr);border-radius:var(--r);padding:16px;margin-bottom:12px;box-shadow:var(--sh)}
+.sec-label{font-size:10px;font-weight:700;color:var(--tx3);text-transform:uppercase;letter-spacing:.06em;margin-bottom:6px}
+
+/* ── CHIP SELECTORS ── */
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chip{padding:6px 14px;border-radius:20px;font-size:13px;font-weight:500;border:1.5px solid var(--bdr);background:var(--sur);color:var(--tx2);cursor:pointer;transition:all .15s;white-space:nowrap}
+.chip:hover{border-color:var(--g3);color:var(--g7)}
+.chip.on{background:var(--g7);color:#fff;border-color:var(--g7)}
+
+/* ── SUS LIST ── */
+.sus-item{display:flex;align-items:center;justify-content:space-between;padding:11px 13px;border-radius:8px;border:1.5px solid var(--bdr);margin-bottom:7px;cursor:pointer;transition:all .14s;background:var(--sur)}
+.sus-item:hover{border-color:var(--g3)}
+.sus-item.done{border-color:var(--g3);background:var(--g1)}
+.sus-item.open{border-color:var(--g7);box-shadow:0 0 0 3px rgba(82,183,136,.18)}
+.sus-name{font-size:14px;font-weight:500}
+.sus-meta{font-size:11px;color:var(--tx3);margin-top:2px}
+.sus-val{font-size:15px;font-weight:600;color:var(--g7);text-align:right}
+.sus-val.empty{color:var(--tx3);font-size:13px;font-weight:400}
+
+/* ── INPUT PANELS ── */
+.inp-panel{display:none;padding:10px 13px;background:#fff;border-top:1px solid var(--bdr);border-radius:0 0 8px 8px;align-items:center;gap:8px}
+.inp-panel.on{display:flex}
+.inp-panel input{flex:1;padding:9px 11px;border:1.5px solid var(--bdr);border-radius:7px;font-size:15px;background:var(--bg)}
+.inp-panel input:focus{outline:none;border-color:var(--g3)}
+.unit{font-size:12px;color:var(--tx3);white-space:nowrap}
+/* Triple */
+.triple-panel{display:none;padding:12px 13px;background:#fff;border-top:1px solid var(--bdr);border-radius:0 0 8px 8px;flex-direction:column;gap:9px}
+.triple-panel.on{display:flex}
+.triple-row{display:flex;align-items:center;gap:8px}
+.triple-lbl{font-size:12px;font-weight:600;color:var(--tx3);min-width:68px}
+.triple-row input{flex:1;padding:8px 10px;border:1.5px solid var(--bdr);border-radius:7px;font-size:14px;background:var(--bg)}
+.triple-row input:focus{outline:none;border-color:var(--g3)}
+.best-bar{display:flex;align-items:center;justify-content:space-between;padding:8px 10px;background:var(--g1);border-radius:6px;border:1px solid var(--g3)}
+.best-lbl{font-size:12px;color:var(--g7);font-weight:500}
+.best-val{font-size:15px;font-weight:700;color:var(--g7)}
+
+/* ── BUTTONS ── */
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;padding:10px 20px;border-radius:8px;font-size:14px;font-weight:500;border:none;cursor:pointer;transition:all .14s}
+.btn-p{background:var(--g7);color:#fff}.btn-p:hover{background:var(--g5)}
+.btn-s{background:var(--g1);color:var(--g7)}.btn-s:hover{background:#c6e8cc}
+.btn-g{background:none;border:1.5px solid var(--bdr);color:var(--tx2)}.btn-g:hover{border-color:var(--g3);color:var(--g7)}
+.btn-full{width:100%}
+.btn:disabled{background:var(--tx3);cursor:not-allowed}
+
+/* ── BADGES ── */
+.badge{display:inline-flex;font-size:10px;font-weight:700;padding:2px 7px;border-radius:20px}
+.bm{background:#e8f0fe;color:#1a5cd4}.bw{background:#fce4ec;color:#c2185b}.bg{background:#f0f0f0;color:#555}
+
+/* ── INFO BOXES ── */
+.info{padding:12px 14px;border-radius:8px;font-size:13px;line-height:1.6}
+.info.amber{background:var(--a1);color:#7a3a0a;border:1px solid #f4b47a}
+.info.green{background:var(--g1);color:var(--g7);border:1px solid var(--g3)}
+.info.red{background:#fde8e8;color:#c0392b;border:1px solid #f5c0c0}
+
+/* ── RANGLISTE ── */
+.rank-grp{margin-bottom:20px}
+.rank-hdr{display:flex;align-items:center;gap:8px;margin-bottom:10px;padding-bottom:8px;border-bottom:2px solid var(--g1)}
+.rank-hdr-title{font-size:15px;font-weight:600}
+.rank-row{display:flex;align-items:center;gap:10px;padding:9px 13px;border-radius:8px;margin-bottom:5px;background:var(--sur);border:1px solid var(--bdr)}
+.rank-row.r1{border-color:#f9c73b;background:#fffbee}
+.rank-row.r2{border-color:#c8d4dc;background:#f6f8fa}
+.rank-row.r3{border-color:#d4aa78;background:#fbf5ee}
+.rank-num{font-size:17px;font-weight:700;min-width:28px;text-align:center}
+.gold{color:#d4a017}.silver{color:#8a9ba8}.bronze{color:#a0784a}.normal{color:var(--tx3);font-size:13px}
+.rank-name{flex:1;font-size:14px;font-weight:500}
+.rank-detail{font-size:10px;color:var(--tx3);margin-top:1px}
+.rank-score{font-size:15px;font-weight:700;color:var(--g7);min-width:36px;text-align:right}
+.incomplete{font-size:12px;color:var(--a3);padding:7px 11px;background:var(--a1);border-radius:6px;margin-bottom:8px}
+
+/* ── FILTER ── */
+.filter-bar{display:flex;gap:6px;flex-wrap:wrap}
+.fc{padding:6px 13px;border-radius:20px;font-size:13px;font-weight:500;border:1.5px solid var(--bdr);background:var(--sur);color:var(--tx2);cursor:pointer;transition:all .14s}
+.fc:hover{border-color:var(--g3);color:var(--g7)}
+.fc.on{background:var(--g7);color:#fff;border-color:var(--g7)}
+
+/* ── EXPORT DROPDOWN ── */
+.exp-wrap{position:relative;display:inline-block}
+.exp-menu{display:none;position:absolute;right:0;top:calc(100% + 5px);background:var(--sur);border:1px solid var(--bdr);border-radius:var(--r);box-shadow:0 4px 20px rgba(0,0,0,.11);min-width:230px;z-index:200;overflow:hidden}
+.exp-menu.on{display:block}
+.exp-sec{padding:6px 0;border-bottom:1px solid var(--bdr)}
+.exp-sec:last-child{border:none}
+.exp-sec-lbl{font-size:10px;font-weight:700;color:var(--tx3);text-transform:uppercase;letter-spacing:.06em;padding:5px 13px 3px}
+.exp-item{display:flex;align-items:center;gap:9px;padding:8px 13px;cursor:pointer;font-size:13px;color:var(--tx);background:none;border:none;width:100%;text-align:left;transition:background .12s}
+.exp-item:hover{background:var(--bg)}
+.exp-item .ei{font-size:15px;width:20px;text-align:center}
+.exp-item .el{font-weight:500}
+.exp-item .es{font-size:11px;color:var(--tx3)}
+
+/* ── PROGRESS ── */
+.progress{height:5px;background:var(--bdr);border-radius:3px;margin-bottom:6px;overflow:hidden}
+.pbar{height:100%;background:var(--g3);border-radius:3px;transition:width .3s}
+.plbl{font-size:12px;color:var(--tx3);text-align:center;margin-bottom:12px}
+
+/* ── STOPWATCH ── */
+#stopwatch-card{display:none}
+#stopwatch-card.on{display:block}
+.sw-display{font-size:56px;font-weight:700;letter-spacing:-.02em;text-align:center;color:var(--g7);font-variant-numeric:tabular-nums;padding:12px 0 8px;line-height:1}
+.sw-sub{font-size:13px;color:var(--tx3);text-align:center;margin-bottom:14px}
+.sw-btns{display:flex;gap:8px;justify-content:center;margin-bottom:14px}
+.sw-result{padding:12px 14px;background:var(--g1);border:1px solid var(--g3);border-radius:8px;margin-bottom:12px;display:none}
+.sw-result.on{display:block}
+.sw-result-label{font-size:12px;color:var(--g7);font-weight:600;margin-bottom:4px}
+.sw-result-time{font-size:22px;font-weight:700;color:var(--g7);margin-bottom:8px}
+.sw-assign{display:flex;flex-direction:column;gap:6px}
+.sw-kid{display:flex;align-items:center;justify-content:space-between;padding:9px 12px;border-radius:7px;border:1.5px solid var(--bdr);background:var(--sur);cursor:pointer;transition:all .14s}
+.sw-kid:hover{border-color:var(--g3);background:var(--g1)}
+.sw-kid.assigned{border-color:var(--g3);background:var(--g1)}
+.sw-kid-name{font-size:13px;font-weight:500}
+.sw-kid-val{font-size:12px;color:var(--tx3)}
+
+/* ── UNTERGRUPPE / RUNDENZÄHLER ── */
+#ug-row{display:none;border-top:1px solid var(--bdr);padding-top:12px;margin-top:4px}
+#ug-row.on{display:block}
+.counter-item{display:flex;align-items:center;gap:0;border:1.5px solid var(--bdr);border-radius:8px;margin-bottom:7px;background:var(--sur);overflow:hidden;transition:border-color .14s}
+.counter-item.done{border-color:var(--g3);background:var(--g1)}
+.counter-info{flex:1;padding:9px 12px;min-width:0}
+.counter-name{font-size:14px;font-weight:500}
+.counter-meta{font-size:11px;color:var(--tx3);margin-top:1px}
+.counter-ctrl{display:flex;align-items:center;gap:0;flex-shrink:0}
+.cbtn{width:42px;height:52px;border:none;background:none;font-size:20px;cursor:pointer;color:var(--g7);display:flex;align-items:center;justify-content:center;border-left:1px solid var(--bdr);transition:background .12s;flex-shrink:0}
+.cbtn:hover{background:var(--g1)}
+.cbtn.minus{color:var(--a3)}
+.cbtn.minus:hover{background:var(--a1)}
+.counter-val{font-size:18px;font-weight:700;color:var(--g7);min-width:38px;text-align:center;border-left:1px solid var(--bdr);padding:0 4px;height:52px;display:flex;align-items:center;justify-content:center;cursor:pointer;user-select:none}
+.counter-val.zero{color:var(--tx3);font-weight:400;font-size:14px}
+/* manual input for counter */
+.counter-manual{display:none;padding:8px 12px;border-top:1px solid var(--bdr);align-items:center;gap:8px;background:#fff}
+.counter-manual.on{display:flex}
+.counter-manual input{flex:1;padding:7px 10px;border:1.5px solid var(--bdr);border-radius:7px;font-size:15px;background:var(--bg)}
+.counter-manual input:focus{outline:none;border-color:var(--g3)}
+
+/* ── HOCHSPRUNG ── */
+#hs-bar{display:none}
+#hs-bar.on{display:block}
+.hs-height-row{display:flex;align-items:center;gap:8px;padding:10px 14px;background:var(--g1);border:1px solid var(--g3);border-radius:8px;margin-bottom:4px}
+.hs-height-lbl{font-size:12px;font-weight:700;color:var(--g7);white-space:nowrap}
+.hs-height-val{font-size:22px;font-weight:700;color:var(--g7);min-width:52px;text-align:center}
+.hs-height-inp{width:80px;padding:6px 8px;border:1.5px solid var(--g3);border-radius:7px;font-size:16px;font-weight:700;color:var(--g7);background:#fff;text-align:center}
+.hs-height-inp:focus{outline:none}
+
+.hs-item{border:1.5px solid var(--bdr);border-radius:8px;margin-bottom:7px;background:var(--sur);overflow:hidden;transition:border-color .14s}
+.hs-item.done{border-color:var(--g3);background:var(--g1)}
+.hs-item.out{border-color:#e0c0c0;background:#fdf4f4;opacity:.7}
+.hs-row{display:flex;align-items:center;gap:0}
+.hs-info{flex:1;padding:9px 12px;min-width:0}
+.hs-name{font-size:14px;font-weight:500}
+.hs-meta{font-size:11px;color:var(--tx3);margin-top:1px}
+.hs-attempts{display:flex;align-items:center;gap:4px;padding:0 10px;flex-shrink:0}
+.hs-x{width:34px;height:44px;border:none;border-radius:6px;font-size:16px;cursor:pointer;transition:all .14s;background:var(--bg);color:var(--tx3);display:flex;align-items:center;justify-content:center;font-weight:700}
+.hs-x.fail{background:#fde8e8;color:#c0392b}
+.hs-x:disabled{opacity:.3;cursor:not-allowed}
+.hs-check{width:38px;height:44px;border:none;border-radius:6px;font-size:18px;cursor:pointer;transition:all .14s;background:var(--bg);color:var(--tx3);display:flex;align-items:center;justify-content:center;border-left:1px solid var(--bdr)}
+.hs-check.pass{background:#d8f3dc;color:var(--g7)}
+.hs-check:disabled{opacity:.3;cursor:not-allowed}
+.hs-val{font-size:13px;font-weight:600;color:var(--g7);padding:0 10px;min-width:52px;text-align:right;white-space:nowrap}
+.hs-val.empty{color:var(--tx3);font-weight:400;font-size:12px}
+
+/* ── MISC ── */
+.hidden{display:none!important}
+.txt-c{text-align:center}
+.mt8{margin-top:8px}
+.mt12{margin-top:12px}
+.mt16{margin-top:16px}
+.mb0{margin-bottom:0}
+.flex-bw{display:flex;align-items:center;justify-content:space-between}
+.tx-sm{font-size:13px;color:var(--tx2)}
+.tx-xs{font-size:12px;color:var(--tx3)}
+.divider{height:1px;background:var(--bdr);margin:12px 0}
+
+@media(max-width:480px){
+  .tab{font-size:13px;padding:9px 6px}
+  .nav-title{font-size:14px}
+}
+</style>
+</head>
+<body>
+
+<!-- LOGIN -->
+<div id="login">
+  <div class="lbox">
+    <div class="ico">🏃</div>
+    <h1>Sporttag 2026</h1>
+    <p>Bitte Passwort eingeben</p>
+    <div class="lerr" id="lerr">Falsches Passwort.</div>
+    <input type="password" id="lpw" placeholder="Passwort" onkeydown="if(event.key==='Enter')login()">
+    <button class="btn btn-p btn-full" onclick="login()">Anmelden</button>
+  </div>
+</div>
+
+<!-- APP -->
+<div id="app" class="hidden">
+  <nav class="nav">
+    <span class="nav-title">🏃 Sporttag 2026</span>
+    <span id="sync" class="sync"></span>
+  </nav>
+  <div class="tabs-bar">
+    <button class="tab on" onclick="gotoPage('erfassung',this)">Erfassung</button>
+    <button class="tab"    onclick="gotoPage('rangliste',this)">Rangliste</button>
+  </div>
+
+  <!-- ERFASSUNG -->
+  <div id="erfassung" class="page on">
+    <div class="card">
+      <div class="sec-label" style="margin-bottom:6px">Posten</div>
+      <div class="chips" id="posten-chips">
+        <div class="chip" data-v="ballweitwurf" onclick="pickPosten(this)">🎯 Ballweitwurf</div>
+        <div class="chip" data-v="ausdauerlauf" onclick="pickPosten(this)">🏃 Ausdauerlauf</div>
+        <div class="chip" data-v="hochsprung"   onclick="pickPosten(this)">⬆️ Hochsprung</div>
+        <div class="chip" data-v="weitsprung"   onclick="pickPosten(this)">↔️ Weitsprung</div>
+        <div class="chip" data-v="schnellauf"   onclick="pickPosten(this)">⚡ Schnellauf</div>
+      </div>
+      <div class="divider"></div>
+      <div class="sec-label" style="margin-bottom:6px">Gruppe</div>
+      <div class="chips" id="gruppe-chips">
+        <div class="chip" data-v="A" onclick="pickGruppe(this)">Gruppe A</div>
+        <div class="chip" data-v="B" onclick="pickGruppe(this)">Gruppe B</div>
+      </div>
+      <div id="ug-row">
+        <div class="sec-label" style="margin-bottom:6px">Untergruppe</div>
+        <div class="chips" id="ug-chips">
+          <div class="chip" data-v="1" onclick="pickUG(this)" id="ug-chip-1">🔴 Rot</div>
+          <div class="chip" data-v="2" onclick="pickUG(this)" id="ug-chip-2">🟡 Gelb</div>
+          <div class="chip" data-v="3" onclick="pickUG(this)" id="ug-chip-3">🔵 Blau</div>
+          <div class="chip" data-v="4" onclick="pickUG(this)" id="ug-chip-4">🟢 Grün</div>
+        </div>
+      </div>
+      <div class="divider"></div>
+      <div class="flex-bw" style="margin-bottom:6px">
+        <div class="sec-label mb0">Klasse</div>
+        <span class="tx-xs" id="progress"></span>
+      </div>
+      <div class="chips" id="klasse-chips">
+        <div class="chip" data-v="1" onclick="pickKlasse(this)">1. Kl.</div>
+        <div class="chip" data-v="2" onclick="pickKlasse(this)">2. Kl.</div>
+        <div class="chip" data-v="3" onclick="pickKlasse(this)">3. Kl.</div>
+        <div class="chip" data-v="4" onclick="pickKlasse(this)">4. Kl.</div>
+        <div class="chip" data-v="5" onclick="pickKlasse(this)">5. Kl.</div>
+        <div class="chip" data-v="6" onclick="pickKlasse(this)">6. Kl.</div>
+      </div>
+    </div>
+
+    <div id="sus-empty" class="card txt-c hidden">
+      <div style="font-size:26px;margin-bottom:8px">📋</div>
+      <div style="font-weight:600;margin-bottom:5px">Keine SuS gefunden</div>
+      <div class="tx-sm" id="sus-empty-msg">Posten, Gruppe und Klasse wählen.</div>
+    </div>
+
+    <!-- HOCHSPRUNG HEIGHT BAR -->
+    <div id="hs-bar" class="card">
+      <div class="sec-label" style="margin-bottom:8px">⬆️ Aktuelle Höhe</div>
+      <div class="hs-height-row">
+        <span class="hs-height-lbl">Höhe:</span>
+        <input type="number" class="hs-height-inp" id="hs-inp" min="0" step="5" placeholder="cm"
+          oninput="hsHeightChanged()" onkeydown="if(event.key==='Enter')this.blur()">
+        <span class="hs-height-lbl">cm</span>
+        <button class="btn btn-s" style="padding:8px 12px;margin-left:4px" onclick="hsIncHeight()">+5 cm</button>
+        <button class="btn-del" style="margin-left:auto" onclick="hsClearHeight()" title="Höhe löschen">🗑</button>
+      </div>
+      <div style="font-size:11px;color:var(--tx3);padding:2px 2px 0">Wenn die Höhe geändert wird, werden alle Versuche (ausser ausgeschiedene) zurückgesetzt.</div>
+    </div>
+
+    <!-- STOPWATCH (only visible for Schnellauf) -->
+    <div id="stopwatch-card" class="card">
+      <div class="sec-label" style="margin-bottom:4px">⚡ Stoppuhr</div>
+      <div class="sw-display" id="sw-display">0.000</div>
+      <div class="sw-sub" id="sw-sub">Bereit</div>
+      <div class="sw-btns">
+        <button class="btn btn-p" id="sw-btn-start" onclick="swStart()" style="min-width:100px">▶ Start</button>
+        <button class="btn btn-g" id="sw-btn-stop"  onclick="swStop()"  style="min-width:100px" disabled>⏹ Stop</button>
+        <button class="btn btn-g" id="sw-btn-reset" onclick="swReset()" style="padding:10px 14px" disabled>↺</button>
+      </div>
+      <div class="sw-result" id="sw-result">
+        <div class="sw-result-label">Gestoppte Zeit – wem zuteilen?</div>
+        <div class="sw-result-time" id="sw-result-time"></div>
+        <div class="sw-assign" id="sw-assign"></div>
+      </div>
+    </div>
+
+    <div id="sus-list-label" class="hidden" style="font-size:11px;font-weight:700;color:var(--tx3);text-transform:uppercase;letter-spacing:.06em;padding:0 2px 6px">
+      Manuelle Eingabe
+    </div>
+    <div id="sus-list"></div>
+  </div>
+
+  <!-- RANGLISTE -->
+  <div id="rangliste" class="page">
+    <div id="rl-no-data" class="card txt-c hidden">
+      <div style="font-size:26px;margin-bottom:8px">🏆</div>
+      <div style="font-weight:600">Noch keine Daten erfasst</div>
+    </div>
+    <div id="rl-content" class="hidden">
+      <div class="card">
+        <div class="flex-bw" style="gap:10px;flex-wrap:wrap;align-items:flex-start">
+          <div style="flex:1;min-width:0">
+            <div class="sec-label" style="margin-bottom:5px">Stufe</div>
+            <div class="filter-bar" id="f-stufe">
+              <div class="fc on" data-v="all" onclick="setFilter('stufe','all',this)">Alle</div>
+              <div class="fc" data-v="1" onclick="setFilter('stufe','1',this)">1. Kl.</div>
+              <div class="fc" data-v="2" onclick="setFilter('stufe','2',this)">2. Kl.</div>
+              <div class="fc" data-v="3" onclick="setFilter('stufe','3',this)">3. Kl.</div>
+              <div class="fc" data-v="4" onclick="setFilter('stufe','4',this)">4. Kl.</div>
+              <div class="fc" data-v="5" onclick="setFilter('stufe','5',this)">5. Kl.</div>
+              <div class="fc" data-v="6" onclick="setFilter('stufe','6',this)">6. Kl.</div>
+            </div>
+            <div class="sec-label" style="margin-bottom:5px;margin-top:10px">Geschlecht</div>
+            <div class="filter-bar" id="f-gesch">
+              <div class="fc on" data-v="all" onclick="setFilter('gesch','all',this)">Alle</div>
+              <div class="fc" data-v="m"   onclick="setFilter('gesch','m',this)">Knaben</div>
+              <div class="fc" data-v="w"   onclick="setFilter('gesch','w',this)">Mädchen</div>
+            </div>
+          </div>
+          <div style="display:flex;flex-direction:column;gap:5px;align-items:flex-end;padding-top:2px">
+            <button class="btn btn-g" style="font-size:12px;padding:6px 11px" onclick="doRefresh()">⟳ Aktualisieren</button>
+            <div class="exp-wrap" id="exp-wrap">
+              <button class="btn btn-p" style="font-size:13px;padding:8px 13px" onclick="toggleExp(event)">📥 Export ▾</button>
+              <div class="exp-menu" id="exp-menu">
+                <div class="exp-sec">
+                  <div class="exp-sec-lbl">Gesamt</div>
+                  <button class="exp-item" onclick="expAll();closeExp()"><span class="ei">📊</span><div><div class="el">Alle Klassen – Excel</div><div class="es">Rangliste + Rohdaten</div></div></button>
+                  <button class="exp-item" onclick="expCSV();closeExp()"><span class="ei">📄</span><div><div class="el">Alle Klassen – CSV</div></div></button>
+                </div>
+                <div class="exp-sec">
+                  <div class="exp-sec-lbl">Pro Klassenverband</div>
+                  <div id="exp-klassen"></div>
+                </div>
+                <div class="exp-sec">
+                  <div class="exp-sec-lbl">Pro Jahrgangsstufe</div>
+                  <div id="exp-stufen"></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div id="rl-body"></div>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script>
+// ═══════════════════════════════════════
+// CONFIG
+// ═══════════════════════════════════════
+const PW_HASH = 'a77603da24498757ed93934391af39c89a179b31d4667724412e98660b1f6c11'; // SHA-256 hash
+const SUPA_URL  = 'https://dtedcfrfldptllhonaqh.supabase.co';
+const SUPA_KEY  = 'sb_publishable_TGq4V3Dpl6i4Go3M388rlg_-NEEEGn_';
+
+const POSTEN = {
+  ballweitwurf: { label:'Ballweitwurf', unit:'m',      asc:false },
+  ausdauerlauf: { label:'Ausdauerlauf', unit:'Runden',  asc:false },
+  hochsprung:   { label:'Hochsprung',   unit:'cm',      asc:false },
+  weitsprung:   { label:'Weitsprung',   unit:'cm',      asc:false },
+  schnellauf:   { label:'Schnellauf',   unit:'s',       asc:true  },
+};
+
+// ═══════════════════════════════════════
+// STATE  — single source of truth
+// ═══════════════════════════════════════
+let sus    = [];   // [{vorname,name,anzeige,klasse,js,g,gruppe}]
+let data   = {};   // key→value  (key = "posten|js|gruppe|anzeige")
+let selP   = null; // selected posten
+// Hochsprung state stored per klasse+gruppe: { height, attempts:{name→{fails,passed}} }
+const hsState = {}; // key = "klasse|gruppe"
+function hsKey() { return selK+'|'+selG; }
+function hsCtx() {
+  const k=hsKey();
+  if(!hsState[k]) hsState[k]={height:null, attempts:{}};
+  return hsState[k];
+}
+let selG   = null; // selected gruppe
+let selK   = null; // selected klasse (jahrgangsstufe digit)
+let selUG  = null; // selected untergruppe (1 or 2, only for Ausdauerlauf)
+let openI  = null; // open input index
+let fStufe = 'all';
+let fGesch = 'all';
+
+// ═══════════════════════════════════════
+// SUPABASE
+// ═══════════════════════════════════════
+async function sbReq(path, opts={}) {
+  const r = await fetch(SUPA_URL+'/rest/v1/'+path, {
+    ...opts,
+    headers:{
+      'apikey':SUPA_KEY,
+      'Authorization':'Bearer '+SUPA_KEY,
+      'Content-Type':'application/json',
+      'Prefer': opts.prefer||'return=representation',
+      ...(opts.headers||{})
+    }
+  });
+  if(!r.ok){ const t=await r.text(); throw new Error(t); }
+  const t=await r.text(); return t?JSON.parse(t):null;
+}
+
+async function loadSus() {
+  try {
+    setSyncBusy();
+    const rows = await sbReq('schueler?select=vorname,name,klasse,jahrgangsstufe,geschlecht,gruppe&order=name,vorname');
+    if(!rows||!rows.length){ setSyncErr(); return; }
+    sus = rows.map(r => {
+      const vn = String(r.vorname||'').trim();
+      const nn = String(r.name||'').trim();
+      // jahrgangsstufe: extract first digit only
+      const js = String(r.jahrgangsstufe||'').replace(/\D/g,'').charAt(0);
+      return {
+        vorname:  vn,
+        name:     nn,
+        anzeige:  (vn+' '+nn).trim() || nn || vn,
+        klasse:   String(r.klasse||'').trim(),
+        js,
+        g:        String(r.geschlecht||'').trim().toLowerCase(),
+        gruppe:   String(r.gruppe||'').trim().toUpperCase(),
+      };
+    });
+    setSyncOk();
+    return true;
+  } catch(e){ setSyncErr(e.message); return false; }
+}
+
+async function loadData() {
+  try {
+    setSyncBusy();
+    const rows = await sbReq('messwerte?select=*');
+    if(!rows){ setSyncOk(); return; }
+    data = {};
+    rows.forEach(r => {
+      const k = mk(r.posten, r.klasse, r.gruppe, r.name);
+      if(r.wert!==null) data[k] = r.wert;
+      if(r.jumps!==null) data[k+'|jumps'] = r.jumps;
+    });
+    // also cache to localStorage
+    try{ localStorage.setItem('st_data', JSON.stringify(data)); }catch(_){}
+    setSyncOk();
+  } catch(e){ setSyncErr(e.message); }
+}
+
+async function saveVal(posten, js, gruppe, anzeige, wert, jumps) {
+  setSyncBusy();
+  try {
+    // Check if row exists
+    const existing = await sbReq(
+      `messwerte?posten=eq.${encodeURIComponent(posten)}&klasse=eq.${encodeURIComponent(js)}&gruppe=eq.${encodeURIComponent(gruppe)}&name=eq.${encodeURIComponent(anzeige)}&select=id`
+    );
+    if(existing && existing.length > 0) {
+      // UPDATE existing row
+      const id = existing[0].id;
+      await sbReq(`messwerte?id=eq.${id}`, {
+        method: 'PATCH',
+        body: JSON.stringify({
+          wert: wert??null,
+          jumps: jumps??null,
+        })
+      });
+    } else {
+      // INSERT new row
+      await sbReq('messwerte', {
+        method: 'POST',
+        body: JSON.stringify({
+          posten, klasse:js, gruppe, name:anzeige,
+          wert: wert??null,
+          jumps: jumps??null,
+        })
+      });
+    }
+    setSyncOk();
+  } catch(e){ setSyncErr(e.message); }
+}
+
+// ═══════════════════════════════════════
+// SYNC INDICATOR
+// ═══════════════════════════════════════
+function setSyncBusy(){ setSync('⟳ Sync…','busy'); }
+function setSyncOk()  { setSync('✓ Gespeichert','ok'); }
+function setSyncErr(m){ setSync('✕ Fehler','err'); if(m) console.error('Sync err:',m); }
+function setSync(t,c) {
+  const el=document.getElementById('sync');
+  el.textContent=t; el.className='sync '+c;
+}
+
+// mk = key builder — uses jahrgangsstufe as "klasse" in key
+function mk(posten, js, gruppe, anzeige){ return `${posten}|${js}|${gruppe}|${anzeige}`; }
+
+// ═══════════════════════════════════════
+// LOGIN
+// ═══════════════════════════════════════
+async function login() {
+  const pw = document.getElementById('lpw').value;
+  const pwHash = await hashPW(pw);
+  if(pwHash!==PW_HASH){
+    document.getElementById('lerr').classList.add('on');
+    document.getElementById('lpw').value='';
+    document.getElementById('lpw').focus();
+    return;
+  }
+  document.getElementById('login').classList.add('off');
+  document.getElementById('app').classList.remove('hidden');
+
+  // Load cached data immediately so UI isn't blank
+  try{ const d=localStorage.getItem('st_data'); if(d) data=JSON.parse(d); }catch(_){}
+
+  // Load fresh from Supabase
+  await loadSus();
+  await loadData();
+
+  // Restore last selection
+  const s = getSaved();
+  if(s.posten){ const el=document.querySelector(`#posten-chips [data-v="${s.posten}"]`); if(el){ pickPosten(el,true); swShow(s.posten==='schnellauf'); if(s.posten==='hochsprung') document.getElementById('hs-bar').classList.add('on'); } }
+  if(s.gruppe){ const el=document.querySelector(`#gruppe-chips [data-v="${s.gruppe}"]`); if(el) pickGruppe(el,true); }
+  if(s.klasse){ const el=document.querySelector(`#klasse-chips [data-v="${s.klasse}"]`); if(el) pickKlasse(el,true); }
+  else { const el=document.querySelector('#klasse-chips .chip'); if(el) pickKlasse(el,true); }
+  if(s.ug && s.posten==='ausdauerlauf'){ const el=document.querySelector(`#ug-chips [data-v="${s.ug}"]`); if(el) pickUG(el,true); }
+
+  renderList();
+
+  // Poll every 30s
+  setInterval(async()=>{
+    await loadData();
+    renderList();
+    if(document.getElementById('rangliste').classList.contains('on')) renderRangliste();
+  }, 30000);
+}
+document.getElementById('lpw').focus();
+
+function getSaved(){ try{ return JSON.parse(localStorage.getItem('st_sel')||'{}'); }catch(_){ return {}; } }
+function savesel(){ try{ localStorage.setItem('st_sel', JSON.stringify({posten:selP,gruppe:selG,klasse:selK,ug:selUG})); }catch(_){} }
+
+// ═══════════════════════════════════════
+// SELECTORS
+// ═══════════════════════════════════════
+function pickPosten(el, silent) {
+  document.querySelectorAll('#posten-chips .chip').forEach(c=>c.classList.remove('on'));
+  el.classList.add('on');
+  selP = el.dataset.v;
+  swShow(selP==='schnellauf');
+  const isHS = selP==='hochsprung';
+  if(isHS) {
+    // Sync height input with current context
+    const ctx = hsCtx();
+    const inp = document.getElementById('hs-inp');
+    if(inp && ctx.height!==null) inp.value = ctx.height;
+    else if(inp && ctx.height===null) inp.value = '';
+  }
+  document.getElementById('hs-bar').classList.toggle('on', isHS);
+  if(!isHS){ /* hsState preserved per klasse/gruppe */ }
+  // Show Untergruppe selector only for Ausdauerlauf
+  const isAL = selP==='ausdauerlauf';
+  document.getElementById('ug-row').classList.toggle('on', isAL);
+  if(!isAL){ selUG=null; }
+  else if(!selUG){
+    // Auto-select UG1
+    const ug1=document.querySelector('#ug-chips [data-v="1"]');
+    if(ug1){ ug1.classList.add('on'); selUG='1'; }
+  }
+  updateUGChips();
+  if(!silent){ savesel(); renderList(); }
+}
+function pickGruppe(el, silent) {
+  document.querySelectorAll('#gruppe-chips .chip').forEach(c=>c.classList.remove('on'));
+  el.classList.add('on');
+  selG = el.dataset.v;
+  updateUGChips();
+  if(!silent){ savesel(); renderList(); if(selP==='schnellauf'&&swStopped!==null) swBuildAssign(); }
+}
+function pickKlasse(el, silent) {
+  document.querySelectorAll('#klasse-chips .chip').forEach(c=>c.classList.remove('on'));
+  el.classList.add('on');
+  selK = el.dataset.v;
+  if(!silent){ savesel(); renderList(); if(selP==='schnellauf'&&swStopped!==null) swBuildAssign(); }
+}
+// UG colour names: same for both groups
+const UG_NAMES = { '1':'🔴 Rot', '2':'🟡 Gelb', '3':'🔵 Blau', '4':'🟢 Grün' };
+function ugName(gruppe, ug) { return UG_NAMES[ug] || ('Gruppe '+ug); }
+function updateUGChips() {
+  [1,2,3,4].forEach(n=>{
+    const el=document.getElementById('ug-chip-'+n);
+    if(el) el.textContent=UG_NAMES[String(n)];
+  });
+}
+function pickUG(el, silent) {
+  document.querySelectorAll('#ug-chips .chip').forEach(c=>c.classList.remove('on'));
+  el.classList.add('on');
+  selUG = el.dataset.v;
+  if(!silent){ savesel(); renderList(); }
+}
+
+// ═══════════════════════════════════════
+// RENDER SUS LIST
+// ═══════════════════════════════════════
+function renderList() {
+  const empty = document.getElementById('sus-empty');
+  const list  = document.getElementById('sus-list');
+  const prog  = document.getElementById('progress');
+
+  if(!selP||!selG||!selK){
+    list.innerHTML=''; empty.classList.remove('hidden');
+    document.getElementById('sus-empty-msg').textContent='Posten, Gruppe und Klasse wählen.';
+    prog.textContent=''; return;
+  }
+
+  // Filter: jahrgangsstufe (js) === selK AND gruppe === selG
+  const kids = sus.filter(s => s.js===selK && s.gruppe===selG)
+                  .sort((a,b)=>a.anzeige.localeCompare(b.anzeige));
+
+  if(!kids.length){
+    list.innerHTML=''; empty.classList.remove('hidden');
+    const ugLabel = (isAL && selUG) ? ugName(selG, selUG) : `Gruppe ${selG}`;
+    document.getElementById('sus-empty-msg').textContent=
+      `Keine SuS in ${ugLabel}, ${selK}. Klasse gefunden.`;
+    prog.textContent=''; return;
+  }
+
+  empty.classList.add('hidden');
+  openI = null;
+
+  const isWS = selP==='weitsprung';
+  const isAL = selP==='ausdauerlauf';
+  const isHS = selP==='hochsprung';
+  const pInfo = POSTEN[selP];
+
+  // For Ausdauerlauf: split kids alphabetically into 4 quarters
+  let displayKids = kids;
+  if(isAL && selUG) {
+    const sorted = [...kids].sort((a,b)=>a.anzeige.localeCompare(b.anzeige));
+    const n=sorted.length, q=parseInt(selUG)-1;
+    const start=Math.round(q*n/4), end=Math.round((q+1)*n/4);
+    displayKids = sorted.slice(start, end);
+  }
+
+  // Progress
+  const done = displayKids.filter(s=>{
+    const k=mk(selP,selK,selG,s.anzeige);
+    if(isWS) return getBest(data[k+'|jumps'])!==null;
+    if(isHS) return data[k]!==undefined;
+    return data[k]!==undefined;
+  }).length;
+  prog.textContent=`${done} / ${displayKids.length} erfasst`;
+
+  list.innerHTML = displayKids.map((s,i)=>{
+    const k = mk(selP, selK, selG, s.anzeige);
+    if(isAL){
+      const val = data[k]!==undefined ? data[k] : 0;
+      const has = data[k]!==undefined && data[k]>0;
+      return `
+<div class="counter-item ${has?'done':''}" id="si${i}">
+  <div class="counter-info">
+    <div class="counter-name">${esc(s.anzeige)}</div>
+    <div class="counter-meta">${esc(s.klasse)} · ${s.g==='m'?'Knabe':'Mädchen'} · ${ugName(selG, selUG)}</div>
+  </div>
+  <div class="counter-ctrl">
+    <button class="cbtn minus" onclick="counterDec(${i},'${k}','${esc(s.anzeige)}')">−</button>
+    <div class="counter-val ${val===0?'zero':''}" id="cv${i}" onclick="toggleCounterManual(${i})">${val===0?'–':val}</div>
+    <button class="cbtn" onclick="counterInc(${i},'${k}','${esc(s.anzeige)}')">+</button>
+  </div>
+</div>
+<div class="counter-manual" id="cm${i}">
+  <input type="number" id="cn${i}" min="0" step="1" placeholder="Runden" value="${val||''}"
+    onkeydown="if(event.key==='Enter')commitCounter(${i},'${k}','${esc(s.anzeige)}')">
+  <span class="unit">Runden</span>
+  <button class="btn btn-p" style="padding:7px 11px" onclick="commitCounter(${i},'${k}','${esc(s.anzeige)}')">OK</button>
+  ${has?`<button class="btn-del" title="Wert löschen" onclick="deleteVal(${i},'${k}','${esc(s.anzeige)}',false)">🗑</button>`:''}
+</div>`;
+    }
+    if(isHS){
+      const k = mk('hochsprung', selK, selG, s.anzeige);
+      const bestVal = data[k];
+      const has = bestVal!==undefined;
+      const att = (isHS ? hsCtx().attempts[s.anzeige] : null) || {fails:0,passed:false};
+      const isOut = att.fails>=3;
+      const allFail = att.fails>=3;
+      // X buttons state
+      const xBtns = [0,1,2].map(j=>{
+        const isFailed = j < att.fails;
+        const disabled = isOut ? 'disabled' : '';
+        return `<button class="hs-x ${isFailed?'fail':''}" id="hsx_${i}_${j}" ${disabled} onclick="hsToggleFail(${i},'${esc(s.anzeige)}',${j})">✕</button>`;
+      }).join('');
+      const checkDisabled = allFail ? 'disabled' : '';
+      const checkClass = att.passed ? 'pass' : '';
+      return `
+<div class="hs-item ${has&&!isOut?'done':''} ${isOut?'out':''}" id="si${i}">
+  <div class="hs-row">
+    <div class="hs-info">
+      <div class="hs-name">${esc(s.anzeige)}</div>
+      <div class="hs-meta">${esc(s.klasse)} · ${s.g==='m'?'Knabe':'Mädchen'}${isOut?' · <span style="color:#c0392b;font-weight:600">Ausgeschieden</span>':''}</div>
+    </div>
+    <div class="hs-attempts">
+      ${xBtns}
+      <button class="hs-check ${checkClass}" id="hschk_${i}" ${checkDisabled} onclick="hsPass(${i},'${k}','${esc(s.anzeige)}')">✓</button>
+    </div>
+    <div class="${has?'hs-val':'hs-val empty'}">
+      ${has?`${bestVal} cm`:'–'}
+    </div>
+  </div>
+</div>`;
+    }
+    if(isWS){
+      const jumps = data[k+'|jumps']||[null,null,null];
+      const best  = getBest(jumps);
+      const hasDone = best!==null;
+      const jv = [0,1,2].map(j=>jumps[j]!==null&&jumps[j]!==undefined?jumps[j]:'');
+      return `
+<div class="sus-item ${hasDone?'done':''}" id="si${i}" onclick="toggleInput(${i})">
+  <div><div class="sus-name">${esc(s.anzeige)}</div><div class="sus-meta">${esc(s.klasse)} · ${s.g==='m'?'Knabe':'Mädchen'}</div></div>
+  <div class="${hasDone?'sus-val':'sus-val empty'}" id="sv${i}">
+    ${hasDone?`${best} <span style="font-size:11px;font-weight:400;color:var(--tx3)">cm</span>`:'–'}
+  </div>
+</div>
+<div class="triple-panel" id="ip${i}">
+  ${[0,1,2].map(j=>`
+  <div class="triple-row">
+    <span class="triple-lbl">Versuch ${j+1}</span>
+    <input type="number" id="n${i}_${j}" min="0" step="0.5" placeholder="–" value="${jv[j]}"
+      oninput="liveTriple(${i},'${k}')">
+    <span class="unit">cm</span>
+  </div>`).join('')}
+  <div class="best-bar" id="bb${i}">
+    <span class="best-lbl">✓ Bester Versuch</span>
+    <span class="best-val" id="bv${i}">${best!==null?best+' cm':'–'}</span>
+  </div>
+  <div style="display:flex;gap:8px;margin-top:8px">
+    <button class="btn btn-p" style="flex:1" onclick="commitTriple(${i},'${k}','${esc(s.anzeige)}')">Speichern</button>
+    ${hasDone?`<button class="btn" style="background:#fde8e8;color:#c0392b;padding:8px 14px" onclick="deleteVal(${i},'${k}','${esc(s.anzeige)}',true)">🗑 Löschen</button>`:''}
+  </div>
+</div>`;
+    } else {
+      const val = data[k];
+      const has = val!==undefined;
+      return `
+<div class="sus-item ${has?'done':''}" id="si${i}" onclick="toggleInput(${i})">
+  <div><div class="sus-name">${esc(s.anzeige)}</div><div class="sus-meta">${esc(s.klasse)} · ${s.g==='m'?'Knabe':'Mädchen'}</div></div>
+  <div class="${has?'sus-val':'sus-val empty'}" id="sv${i}">
+    ${has?`${val} <span style="font-size:11px;font-weight:400;color:var(--tx3)">${pInfo.unit}</span>`:'–'}
+  </div>
+</div>
+<div class="inp-panel" id="ip${i}">
+  <input type="number" id="n${i}" min="0" step="0.01" placeholder="Wert" value="${has?val:''}"
+    onkeydown="if(event.key==='Enter')commitVal(${i},'${k}','${esc(s.anzeige)}','${pInfo.unit}')"
+    oninput="liveVal(${i},'${k}','${pInfo.unit}')">
+  <span class="unit">${pInfo.unit}</span>
+  <button class="btn btn-p" style="padding:8px 12px" onclick="commitVal(${i},'${k}','${esc(s.anzeige)}','${pInfo.unit}')">OK</button>
+  ${has?`<button class="btn-del" title="Wert löschen" onclick="deleteVal(${i},'${k}','${esc(s.anzeige)}',false)">🗑</button>`:''}
+</div>`;
+    }
+  }).join('');
+}
+
+function toggleInput(i) {
+  if(openI!==null && openI!==i){
+    document.getElementById('ip'+openI)?.classList.remove('on');
+    document.getElementById('si'+openI)?.classList.remove('open');
+  }
+  const ip=document.getElementById('ip'+i);
+  const si=document.getElementById('si'+i);
+  if(ip.classList.contains('on')){
+    ip.classList.remove('on'); si.classList.remove('open'); openI=null;
+  } else {
+    ip.classList.add('on'); si.classList.add('open'); openI=i;
+    setTimeout(()=>{ const f=document.getElementById('n'+i)||document.getElementById('n'+i+'_0'); f?.focus(); },40);
+  }
+}
+
+function liveVal(i, k, unit) {
+  const v=parseFloat(document.getElementById('n'+i).value);
+  if(isNaN(v)) return;
+  data[k]=v;
+  const el=document.getElementById('sv'+i);
+  el.className='sus-val';
+  el.innerHTML=`${v} <span style="font-size:11px;font-weight:400;color:var(--tx3)">${unit}</span>`;
+}
+
+function commitVal(i, k, anzeige, unit) {
+  const v=parseFloat(document.getElementById('n'+i).value);
+  if(isNaN(v)||v<0) return;
+  data[k]=v;
+  openI=null;
+  saveVal(selP, selK, selG, anzeige, v, null);
+  renderList();
+}
+
+function liveTriple(i, k) {
+  const jumps=[0,1,2].map(j=>{ const v=parseFloat(document.getElementById(`n${i}_${j}`)?.value); return isNaN(v)?null:v; });
+  data[k+'|jumps']=jumps;
+  const best=getBest(jumps);
+  if(best!==null) data[k]=best;
+  document.getElementById('bv'+i).textContent=best!==null?best+' cm':'–';
+  const el=document.getElementById('sv'+i);
+  if(best!==null){ el.className='sus-val'; el.innerHTML=`${best} <span style="font-size:11px;font-weight:400;color:var(--tx3)">cm</span>`; }
+}
+
+function commitTriple(i, k, anzeige) {
+  liveTriple(i, k);
+  const jumps=data[k+'|jumps']||[];
+  const best=getBest(jumps);
+  openI=null;
+  saveVal('weitsprung', selK, selG, anzeige, best, jumps);
+  renderList();
+}
+
+async function deleteVal(i, k, anzeige, isWS) {
+  if(!confirm('Wert von ' + anzeige + ' wirklich löschen?')) return;
+  delete data[k];
+  if(isWS) delete data[k+'|jumps'];
+  setSyncBusy();
+  try {
+    const parts = k.split('|');
+    const posten = parts[0], js = parts[1], gruppe = parts[2];
+    await sbReq(
+      'messwerte?posten=eq.'+encodeURIComponent(posten)+'&klasse=eq.'+encodeURIComponent(js)+'&gruppe=eq.'+encodeURIComponent(gruppe)+'&name=eq.'+encodeURIComponent(anzeige),
+      { method:'DELETE' }
+    );
+    setSyncOk();
+  } catch(e){ setSyncErr(e.message); }
+  renderList();
+}
+
+function getBest(jumps) {
+  if(!jumps) return null;
+  const vs=jumps.filter(v=>v!==null&&v!==undefined&&!isNaN(v));
+  return vs.length?Math.max(...vs):null;
+}
+
+function updateProgress() {
+  if(!selP||!selG||!selK) return;
+  const isWS=selP==='weitsprung';
+  const isAL=selP==='ausdauerlauf';
+  let kids=sus.filter(s=>s.js===selK&&s.gruppe===selG);
+  if(isAL && selUG){
+    const sorted=[...kids].sort((a,b)=>a.anzeige.localeCompare(b.anzeige));
+    const n=sorted.length, q=parseInt(selUG)-1;
+    const start=Math.round(q*n/4), end=Math.round((q+1)*n/4);
+    kids=sorted.slice(start,end);
+  }
+  const done=kids.filter(s=>{ const k=mk(selP,selK,selG,s.anzeige); return isWS?(getBest(data[k+'|jumps'])!==null):(data[k]!==undefined&&data[k]>0); }).length;
+  document.getElementById('progress').textContent=`${done} / ${kids.length} erfasst`;
+}
+
+// ═══════════════════════════════════════
+// PAGE NAVIGATION
+// ═══════════════════════════════════════
+function gotoPage(id, btn) {
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('on'));
+  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('on'));
+  document.getElementById(id).classList.add('on');
+  btn.classList.add('on');
+  if(id==='rangliste') renderRangliste();
+}
+
+// ═══════════════════════════════════════
+// RANGLISTE
+// ═══════════════════════════════════════
+function setFilter(dim, val, el) {
+  if(dim==='stufe') fStufe=val; else fGesch=val;
+  document.querySelectorAll(`#f-${dim==='stufe'?'stufe':'gesch'} .fc`).forEach(c=>c.classList.remove('on'));
+  el.classList.add('on');
+  buildRangliste();
+}
+
+function renderRangliste() {
+  const hasData = Object.keys(data).some(k=>!k.endsWith('|jumps'));
+  document.getElementById('rl-no-data').classList.toggle('hidden', hasData);
+  document.getElementById('rl-content').classList.toggle('hidden', !hasData);
+  if(hasData) buildRangliste();
+}
+
+function buildRangliste() {
+  const stufen = fStufe==='all' ? ['1','2','3','4','5','6'] : [fStufe];
+  const geschl = fGesch==='all' ? ['m','w'] : [fGesch];
+  let html='';
+  for(const js of stufen){
+    for(const g of geschl){
+      const kids=sus.filter(s=>s.js===js&&s.g===g);
+      if(!kids.length) continue;
+      html+=renderGroup(js,g,calcRanking(kids,js));
+    }
+  }
+  document.getElementById('rl-body').innerHTML = html||'<div class="card txt-c tx-sm">Keine Daten für diese Auswahl.</div>';
+}
+
+function calcRanking(kids, js) {
+  const results = kids.map(kid=>{
+    let sum=0, details=[], complete=true;
+    for(const [pk,pi] of Object.entries(POSTEN)){
+      const kA=mk(pk,js,'A',kid.anzeige), kB=mk(pk,js,'B',kid.anzeige);
+      const v = data[kA]!==undefined ? data[kA] : (data[kB]!==undefined ? data[kB] : undefined);
+      if(v===undefined) complete=false;
+      details.push({pk,label:pi.label,v,unit:pi.unit});
+    }
+    return {kid,sum,details,complete};
+  });
+  for(const [pk,pi] of Object.entries(POSTEN)){
+    const wv=results.filter(r=>r.details.find(d=>d.pk===pk)?.v!==undefined);
+    wv.sort((a,b)=>{
+      const av=a.details.find(d=>d.pk===pk).v;
+      const bv=b.details.find(d=>d.pk===pk).v;
+      return pi.asc ? av-bv : bv-av;
+    });
+    // Assign dense ranks: same value → same rank (no skipped ranks)
+    let rank=1;
+    for(let i=0;i<wv.length;i++){
+      if(i>0){
+        const prev=wv[i-1].details.find(d=>d.pk===pk).v;
+        const curr=wv[i].details.find(d=>d.pk===pk).v;
+        if(curr!==prev) rank=i+1; // only advance rank if value differs
+      }
+      wv[i].sum+=rank;
+    }
+    const pen=wv.length+1;
+    results.filter(r=>r.details.find(d=>d.pk===pk)?.v===undefined).forEach(r=>r.sum+=pen);
+  }
+  return results.sort((a,b)=>a.sum-b.sum);
+}
+
+function renderGroup(js, g, results) {
+  const gLabel=g==='m'?'Knaben':'Mädchen';
+  const gCls  =g==='m'?'bm':'bw';
+  const medals=['🥇','🥈','🥉'];
+  const rcls  =['gold','silver','bronze'];
+  const rows=results.map((r,i)=>{
+    const det=r.details.map(d=>`${d.label}: ${d.v!==undefined?d.v+' '+d.unit:'–'}`).join(' · ');
+    return `<div class="rank-row ${i<3?'r'+(i+1):''}">
+      <div class="rank-num ${i<3?rcls[i]:'normal'}">${i<3?medals[i]:(i+1)+'.'}</div>
+      <div style="flex:1;min-width:0">
+        <div class="rank-name">${esc(r.kid.anzeige)}</div>
+        <div class="rank-detail">${det}</div>
+      </div>
+      <div class="rank-score">${r.sum}</div>
+    </div>`;
+  }).join('');
+  const inc=results.some(r=>!r.complete)?`<div class="incomplete">⚠️ Nicht alle Disziplinen erfasst – vorläufig</div>`:'';
+  return `<div class="rank-grp">
+    <div class="rank-hdr"><span class="rank-hdr-title">${js}. Klasse</span><span class="badge ${gCls}">${gLabel}</span></div>
+    ${inc}${rows}
+  </div>`;
+}
+
+async function doRefresh() {
+  await loadData();
+  renderRangliste();
+}
+
+// ═══════════════════════════════════════
+// EXPORT
+// ═══════════════════════════════════════
+function toggleExp(e) {
+  e.stopPropagation();
+  buildExpMenu();
+  document.getElementById('exp-menu').classList.toggle('on');
+}
+function closeExp() { document.getElementById('exp-menu').classList.remove('on'); }
+document.addEventListener('click', e=>{ if(!document.getElementById('exp-wrap')?.contains(e.target)) closeExp(); });
+
+function buildExpMenu() {
+  const klassen=[...new Set(sus.map(s=>s.klasse).filter(Boolean))].sort();
+  document.getElementById('exp-klassen').innerHTML=klassen.map(kl=>
+    `<button class="exp-item" onclick="expKlasse('${kl.replace(/'/g,"\\'")}');closeExp()"><span class="ei">📋</span><div><div class="el">${esc(kl)}</div></div></button>`
+  ).join('');
+  const stufen=[...new Set(sus.map(s=>s.js).filter(Boolean))].sort();
+  document.getElementById('exp-stufen').innerHTML=stufen.map(st=>
+    `<button class="exp-item" onclick="expStufe('${st}');closeExp()"><span class="ei">🏫</span><div><div class="el">${st}. Klasse (alle)</div></div></button>`
+  ).join('');
+}
+
+function buildRankSheet(jsArr) {
+  const H=['Klasse','Geschlecht','Rang','Name','Rang-Summe',
+    'Ballweitwurf (m)','Ausdauerlauf (Rd.)','Hochsprung (cm)',
+    'Weitsprung best (cm)','WS V1','WS V2','WS V3','Schnellauf (s)'];
+  const rows=[H];
+  for(const js of jsArr){
+    for(const g of ['m','w']){
+      const kids=sus.filter(s=>s.js===js&&s.g===g);
+      if(!kids.length) continue;
+      calcRanking(kids,js).forEach((r,i)=>{
+        const pks=Object.keys(POSTEN);
+        const vals=pks.map(pk=>{
+          const v=data[mk(pk,js,'A',r.kid.anzeige)]??data[mk(pk,js,'B',r.kid.anzeige)];
+          return v!==undefined?v:'';
+        });
+        const wkA=mk('weitsprung',js,'A',r.kid.anzeige)+'|jumps';
+        const wkB=mk('weitsprung',js,'B',r.kid.anzeige)+'|jumps';
+        const j=data[wkA]||data[wkB]||[null,null,null];
+        vals.splice(pks.indexOf('weitsprung')+1,0,j[0]??'',j[1]??'',j[2]??'');
+        rows.push([js+'. Kl.',g==='m'?'Knaben':'Mädchen',i+1,r.kid.anzeige,r.sum,...vals]);
+      });
+    }
+  }
+  return rows;
+}
+
+function buildDetailSheet(kids, js) {
+  const pks=Object.keys(POSTEN);
+  const H=['Name','Klasse','Gruppe','Geschlecht',
+    ...pks.flatMap(pk=>pk==='weitsprung'?['Weitsprung best (cm)','WS V1','WS V2','WS V3']:[`${POSTEN[pk].label} (${POSTEN[pk].unit})`])];
+  const rows=[H];
+  kids.sort((a,b)=>a.anzeige.localeCompare(b.anzeige)).forEach(kid=>{
+    const row=[kid.anzeige,kid.klasse,kid.gruppe,kid.g==='m'?'Knabe':'Mädchen'];
+    pks.forEach(pk=>{
+      const v=data[mk(pk,js,'A',kid.anzeige)]??data[mk(pk,js,'B',kid.anzeige)]??'';
+      if(pk==='weitsprung'){
+        const jA=data[mk(pk,js,'A',kid.anzeige)+'|jumps']||data[mk(pk,js,'B',kid.anzeige)+'|jumps']||[null,null,null];
+        row.push(v,jA[0]??'',jA[1]??'',jA[2]??'');
+      } else row.push(v);
+    });
+    rows.push(row);
+  });
+  return rows;
+}
+
+function expAll() {
+  if(!sus.length){ alert('Keine Schülerliste.'); return; }
+  const wb=XLSX.utils.book_new();
+  const jsAll=[...new Set(sus.map(s=>s.js).filter(Boolean))].sort();
+  XLSX.utils.book_append_sheet(wb,XLSX.utils.aoa_to_sheet(buildRankSheet(jsAll)),'Rangliste');
+  const rawH=['Name','Klasse','Jahrgangsstufe','Geschlecht','Posten','Gruppe','Wert','Einheit','V1','V2','V3'];
+  const rawR=[rawH];
+  Object.entries(data).forEach(([k,v])=>{
+    if(k.endsWith('|jumps')) return;
+    const [pk,js,gr,nm]=k.split('|');
+    if(!POSTEN[pk]) return;
+    const s=sus.find(x=>x.anzeige===nm);
+    if(!s) return;
+    let v1='',v2='',v3='';
+    if(pk==='weitsprung'){ const j=data[k+'|jumps']||[]; v1=j[0]??'';v2=j[1]??'';v3=j[2]??''; }
+    rawR.push([nm,s.klasse,js,s.g==='m'?'Knaben':'Mädchen',POSTEN[pk].label,gr,v,POSTEN[pk].unit,v1,v2,v3]);
+  });
+  XLSX.utils.book_append_sheet(wb,XLSX.utils.aoa_to_sheet(rawR),'Rohdaten');
+  XLSX.writeFile(wb,'Sporttag_Rangliste.xlsx');
+}
+
+function expCSV() {
+  const H=['Name','Klasse','Jahrgangsstufe','Geschlecht','Posten','Gruppe','Wert','Einheit','V1','V2','V3'];
+  const rows=[H];
+  Object.entries(data).forEach(([k,v])=>{
+    if(k.endsWith('|jumps')) return;
+    const [pk,js,gr,nm]=k.split('|');
+    if(!POSTEN[pk]) return;
+    const s=sus.find(x=>x.anzeige===nm);
+    if(!s) return;
+    let v1='',v2='',v3='';
+    if(pk==='weitsprung'){ const j=data[k+'|jumps']||[]; v1=j[0]??'';v2=j[1]??'';v3=j[2]??''; }
+    rows.push([nm,s.klasse,js,s.g,POSTEN[pk].label,gr,v,POSTEN[pk].unit,v1,v2,v3]);
+  });
+  const csv=rows.map(r=>r.map(c=>`"${String(c).replace(/"/g,'""')}"`).join(',')).join('\n');
+  const blob=new Blob(['\uFEFF'+csv],{type:'text/csv;charset=utf-8;'});
+  const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download='Sporttag_Rohdaten.csv'; a.click();
+}
+
+function expKlasse(kl) {
+  if(!sus.length){ alert('Keine Schülerliste.'); return; }
+  const kids=sus.filter(s=>s.klasse===kl);
+  if(!kids.length){ alert('Keine SuS in dieser Klasse.'); return; }
+  const jsArr=[...new Set(kids.map(s=>s.js).filter(Boolean))].sort();
+  const wb=XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb,XLSX.utils.aoa_to_sheet(buildRankSheet(jsArr)),'Rangliste');
+  jsArr.forEach(js=>{
+    const kidsJs=kids.filter(s=>s.js===js);
+    if(kidsJs.length) XLSX.utils.book_append_sheet(wb,XLSX.utils.aoa_to_sheet(buildDetailSheet(kidsJs,js)),`Messwerte JS${js}`);
+  });
+  const safe=kl.replace(/[\/\\:*?"<>|]/g,'_').substring(0,28);
+  XLSX.writeFile(wb,`Sporttag_${safe}.xlsx`);
+}
+
+function expStufe(js) {
+  if(!sus.length){ alert('Keine Schülerliste.'); return; }
+  const kids=sus.filter(s=>s.js===js);
+  if(!kids.length){ alert('Keine SuS in dieser Stufe.'); return; }
+  const wb=XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb,XLSX.utils.aoa_to_sheet(buildRankSheet([js])),'Rangliste');
+  XLSX.utils.book_append_sheet(wb,XLSX.utils.aoa_to_sheet(buildDetailSheet(kids,js)),'Messwerte');
+  XLSX.writeFile(wb,`Sporttag_Stufe_${js}.xlsx`);
+}
+
+// ═══════════════════════════════════════
+// RUNDENZÄHLER (Ausdauerlauf)
+// ═══════════════════════════════════════
+
+// Debounce timers per key – prevents race conditions when clicking fast
+const counterTimers = {};
+
+function counterInc(i, k, anzeige) {
+  data[k] = (data[k]!==undefined ? data[k] : 0) + 1;
+  updateCounterDisplay(i, data[k]);
+  scheduleCounterSave(k, anzeige);
+}
+function counterDec(i, k, anzeige) {
+  if(!data[k] || data[k]<=0) return;
+  data[k] = data[k] - 1;
+  updateCounterDisplay(i, data[k]);
+  scheduleCounterSave(k, anzeige);
+}
+
+// Wait 800ms after last click before saving – always reads latest data[k]
+function scheduleCounterSave(k, anzeige) {
+  if(counterTimers[k]) clearTimeout(counterTimers[k]);
+  counterTimers[k] = setTimeout(() => {
+    const v = data[k]!==undefined ? data[k] : 0;
+    saveVal('ausdauerlauf', selK, selG, anzeige, v, null);
+    delete counterTimers[k];
+  }, 800);
+}
+
+function toggleCounterManual(i) {
+  const cm = document.getElementById('cm'+i);
+  cm.classList.toggle('on');
+  if(cm.classList.contains('on')){
+    const inp=document.getElementById('cn'+i);
+    inp.focus(); inp.select();
+  }
+}
+function commitCounter(i, k, anzeige) {
+  const v = parseInt(document.getElementById('cn'+i).value);
+  if(isNaN(v)||v<0) return;
+  data[k] = v;
+  openI=null;
+  saveVal('ausdauerlauf', selK, selG, anzeige, v, null);
+  renderList();
+}
+function updateCounterDisplay(i, v) {
+  const el = document.getElementById('cv'+i);
+  const si = document.getElementById('si'+i);
+  if(!el||!si) return;
+  el.textContent = v>0 ? v : '–';
+  el.className = 'counter-val' + (v===0?' zero':'');
+  si.className = 'counter-item' + (v>0?' done':'');
+  const inp=document.getElementById('cn'+i);
+  if(inp) inp.value=v||'';
+  updateProgress();
+}
+
+// ═══════════════════════════════════════
+// HOCHSPRUNG
+// ═══════════════════════════════════════
+function hsIncHeight() {
+  const inp = document.getElementById('hs-inp');
+  const cur = parseFloat(inp.value) || 0;
+  inp.value = cur + 5;
+  hsHeightChanged();
+}
+
+function hsClearHeight() {
+  document.getElementById('hs-inp').value = '';
+  const ctx = hsCtx();
+  ctx.height = null;
+  hsResetAll();
+  renderList();
+}
+
+function hsHeightChanged() {
+  const v = parseFloat(document.getElementById('hs-inp').value);
+  const ctx = hsCtx();
+  ctx.height = isNaN(v) ? null : v;
+  hsResetAll();
+  renderList();
+}
+
+function hsResetAll() {
+  // Reset attempts for all kids in current context that are NOT out (fails < 3)
+  const att = hsCtx().attempts;
+  Object.keys(att).forEach(name => {
+    if(att[name].fails < 3) att[name] = {fails:0, passed:false};
+  });
+}
+
+function hsToggleFail(i, anzeige, j) {
+  const att = hsCtx().attempts;
+  if(!att[anzeige]) att[anzeige] = {fails:0, passed:false};
+  const a = att[anzeige];
+  if(j < a.fails) { a.fails = j; }
+  else { a.fails = j + 1; }
+  a.passed = false;
+  renderList();
+}
+
+function hsPass(i, k, anzeige) {
+  const ctx = hsCtx();
+  if(!ctx.height) { alert('Bitte zuerst eine Höhe eingeben.'); return; }
+  if(!ctx.attempts[anzeige]) ctx.attempts[anzeige] = {fails:0, passed:false};
+  const a = ctx.attempts[anzeige];
+  if(a.fails >= 3) return;
+  a.passed = true;
+  a.fails = 0;
+  data[k] = ctx.height;
+  saveVal('hochsprung', selK, selG, anzeige, ctx.height, null);
+  renderList();
+}
+
+// ═══════════════════════════════════════
+// STOPWATCH
+// ═══════════════════════════════════════
+let swRunning  = false;
+let swStart_t  = 0;
+let swElapsed  = 0;
+let swRaf      = null;
+let swStopped  = null; // last stopped time in seconds
+
+function swTick() {
+  if(!swRunning) return;
+  swElapsed = (performance.now() - swStart_t) / 1000;
+  swSetDisplay(swElapsed);
+  swRaf = requestAnimationFrame(swTick);
+}
+
+function swSetDisplay(secs) {
+  const s = secs.toFixed(3);
+  document.getElementById('sw-display').textContent = s;
+}
+
+function swStart() {
+  if(swRunning) return;
+  swRunning = true;
+  swStart_t = performance.now() - swElapsed*1000;
+  swRaf = requestAnimationFrame(swTick);
+  document.getElementById('sw-btn-start').disabled = true;
+  document.getElementById('sw-btn-stop').disabled  = false;
+  document.getElementById('sw-btn-reset').disabled = true;
+  document.getElementById('sw-sub').textContent = '⏱ Läuft…';
+  document.getElementById('sw-result').classList.remove('on');
+}
+
+function swStop() {
+  if(!swRunning) return;
+  cancelAnimationFrame(swRaf);
+  swRunning = false;
+  swElapsed = (performance.now() - swStart_t) / 1000;
+  swStopped = Math.round(swElapsed * 100) / 100; // round to 2 decimals
+  swSetDisplay(swStopped);
+  document.getElementById('sw-btn-start').disabled = false;
+  document.getElementById('sw-btn-stop').disabled  = true;
+  document.getElementById('sw-btn-reset').disabled = false;
+  document.getElementById('sw-sub').textContent = 'Gestoppt';
+  // Show assign panel
+  document.getElementById('sw-result-time').textContent = swStopped + ' s';
+  document.getElementById('sw-result').classList.add('on');
+  swBuildAssign();
+}
+
+function swReset() {
+  cancelAnimationFrame(swRaf);
+  swRunning = false;
+  swElapsed = 0;
+  swStopped = null;
+  swSetDisplay(0);
+  document.getElementById('sw-btn-start').disabled = false;
+  document.getElementById('sw-btn-stop').disabled  = true;
+  document.getElementById('sw-btn-reset').disabled = true;
+  document.getElementById('sw-sub').textContent = 'Bereit';
+  document.getElementById('sw-result').classList.remove('on');
+}
+
+function swBuildAssign() {
+  if(!selP||!selG||!selK) return;
+  const kids = sus.filter(s=>s.js===selK&&s.gruppe===selG)
+                   .sort((a,b)=>a.anzeige.localeCompare(b.anzeige));
+  const container = document.getElementById('sw-assign');
+  container.innerHTML = kids.map(s=>{
+    const k = mk('schnellauf', selK, selG, s.anzeige);
+    const existing = data[k];
+    const hasDone = existing !== undefined;
+    return `<div class="sw-kid ${hasDone?'assigned':''}" onclick="swAssign('${k}','${esc(s.anzeige)}')">
+      <span class="sw-kid-name">${esc(s.anzeige)}</span>
+      <span class="sw-kid-val">${hasDone ? existing+' s ✓' : '→ zuteilen'}</span>
+    </div>`;
+  }).join('');
+}
+
+function swAssign(k, anzeige) {
+  if(swStopped===null) return;
+  data[k] = swStopped;
+  // Save to Supabase
+  saveVal('schnellauf', selK, selG, anzeige, swStopped, null);
+  // Update assign list
+  swBuildAssign();
+  // Update main sus list
+  renderList();
+  // Reset stopwatch for next runner
+  swReset();
+}
+
+function swShow(show) {
+  const card = document.getElementById('stopwatch-card');
+  const lbl  = document.getElementById('sus-list-label');
+  if(show){ card.classList.add('on'); lbl.classList.remove('hidden'); }
+  else    { card.classList.remove('on'); lbl.classList.add('hidden'); }
+  if(!show) swReset();
+}
+
+// ═══════════════════════════════════════
+// UTILS
+// ═══════════════════════════════════════
+function esc(s){ return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+
+// Hash password with SHA-256 (password never stored in plain text)
+async function hashPW(pw) {
+  const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(pw));
+  return Array.from(new Uint8Array(buf)).map(b=>b.toString(16).padStart(2,'0')).join('');
+}
+</script>
+</body>
+</html>
