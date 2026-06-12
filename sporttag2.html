@@ -655,7 +655,7 @@ function renderList() {
 
   // Filter: jahrgangsstufe (js) === selK AND gruppe === selG
   const kids = sus.filter(s => s.js===selK && s.gruppe===selG)
-                  .sort((a,b)=>a.anzeige.localeCompare(b.anzeige));
+                  .sort((a,b)=>{ const na=parseInt(a.nummer)||99999, nb=parseInt(b.nummer)||99999; return na!==nb ? na-nb : a.anzeige.localeCompare(b.anzeige); });
 
   if(!kids.length){
     list.innerHTML=''; empty.classList.remove('hidden');
@@ -676,7 +676,7 @@ function renderList() {
   // For Ausdauerlauf: split kids alphabetically into 4 quarters
   let displayKids = kids;
   if(isAL && selUG) {
-    const sorted = [...kids].sort((a,b)=>a.anzeige.localeCompare(b.anzeige));
+    const sorted = [...kids].sort((a,b)=>{ const na=parseInt(a.nummer)||99999, nb=parseInt(b.nummer)||99999; return na!==nb ? na-nb : a.anzeige.localeCompare(b.anzeige); });
     const n=sorted.length, q=parseInt(selUG)-1;
     const start=Math.round(q*n/4), end=Math.round((q+1)*n/4);
     displayKids = sorted.slice(start, end);
@@ -921,7 +921,7 @@ function updateProgress() {
   const isAL=selP==='ausdauerlauf';
   let kids=sus.filter(s=>s.js===selK&&s.gruppe===selG);
   if(isAL && selUG){
-    const sorted=[...kids].sort((a,b)=>a.anzeige.localeCompare(b.anzeige));
+    const sorted=[...kids].sort((a,b)=>{ const na=parseInt(a.nummer)||99999, nb=parseInt(b.nummer)||99999; return na!==nb ? na-nb : a.anzeige.localeCompare(b.anzeige); });
     const n=sorted.length, q=parseInt(selUG)-1;
     const start=Math.round(q*n/4), end=Math.round((q+1)*n/4);
     kids=sorted.slice(start,end);
@@ -1087,7 +1087,7 @@ function buildDetailSheet(kids, js) {
   const H=['Name','Klasse','Gruppe','Geschlecht',
     ...pks.flatMap(pk=>pk==='weitsprung'?['Weitsprung best (cm)','WS V1','WS V2','WS V3']:[`${POSTEN[pk].label} (${POSTEN[pk].unit})`])];
   const rows=[H];
-  kids.sort((a,b)=>a.anzeige.localeCompare(b.anzeige)).forEach(kid=>{
+  kids.sort((a,b)=>{ const na=parseInt(a.nummer)||99999, nb=parseInt(b.nummer)||99999; return na!==nb ? na-nb : a.anzeige.localeCompare(b.anzeige); }).forEach(kid=>{
     const row=[kid.anzeige,kid.klasse,kid.gruppe,kid.g==='m'?'Knabe':'Mädchen'];
     pks.forEach(pk=>{
       const v=data[mk(pk,js,'A',kid.anzeige)]??data[mk(pk,js,'B',kid.anzeige)]??'';
@@ -1358,7 +1358,7 @@ function swReset() {
 function swBuildAssign() {
   if(!selP||!selG||!selK) return;
   const kids = sus.filter(s=>s.js===selK&&s.gruppe===selG)
-                   .sort((a,b)=>a.anzeige.localeCompare(b.anzeige));
+                   .sort((a,b)=>{ const na=parseInt(a.nummer)||99999, nb=parseInt(b.nummer)||99999; return na!==nb ? na-nb : a.anzeige.localeCompare(b.anzeige); });
   const container = document.getElementById('sw-assign');
   container.innerHTML = kids.map(s=>{
     const k = mk('schnellauf', selK, selG, s.anzeige);
