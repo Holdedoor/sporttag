@@ -405,7 +405,7 @@ const POSTEN = {
 // ═══════════════════════════════════════
 // STATE  — single source of truth
 // ═══════════════════════════════════════
-let sus    = [];   // [{vorname,name,anzeige,klasse,js,g,gruppe}]
+let sus    = [];   // [{vorname,name,nummer,anzeige,klasse,js,g,gruppe}]
 let data   = {};   // key→value  (key = "posten|js|gruppe|anzeige")
 let selP   = null; // selected posten
 // Hochsprung state stored per klasse+gruppe: { height, attempts:{name→{fails,passed}} }
@@ -444,7 +444,7 @@ async function sbReq(path, opts={}) {
 async function loadSus() {
   try {
     setSyncBusy();
-    const rows = await sbReq('schueler?select=vorname,name,klasse,jahrgangsstufe,geschlecht,gruppe&order=name,vorname');
+    const rows = await sbReq('schueler?select=vorname,name,nummer,klasse,jahrgangsstufe,geschlecht,gruppe&order=name,vorname');
     if(!rows||!rows.length){ setSyncErr(); return; }
     sus = rows.map(r => {
       const vn = String(r.vorname||'').trim();
@@ -455,6 +455,7 @@ async function loadSus() {
         vorname:  vn,
         name:     nn,
         anzeige:  (vn+' '+nn).trim() || nn || vn,
+        nummer:   String(r.nummer||'').trim(),
         klasse:   String(r.klasse||'').trim(),
         js,
         g:        String(r.geschlecht||'').trim().toLowerCase(),
