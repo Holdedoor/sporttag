@@ -1394,6 +1394,7 @@ function swShow(show) {
 // UTILS
 // ═══════════════════════════════════════
 function esc(s){ return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+function numBadge(nr){ return nr ? `<span class="num-badge">${esc(nr)}</span>` : ''; }
 
 // Hash password with SHA-256 (password never stored in plain text)
 async function hashPW(pw) {
