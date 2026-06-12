@@ -196,8 +196,12 @@ body{font-family:system-ui,-apple-system,sans-serif;background:var(--bg);color:v
 .hs-check{width:38px;height:44px;border:none;border-radius:6px;font-size:18px;cursor:pointer;transition:all .14s;background:var(--bg);color:var(--tx3);display:flex;align-items:center;justify-content:center;border-left:1px solid var(--bdr)}
 .hs-check.pass{background:#d8f3dc;color:var(--g7)}
 .hs-check:disabled{opacity:.3;cursor:not-allowed}
-.hs-val{font-size:13px;font-weight:600;color:var(--g7);padding:0 10px;min-width:52px;text-align:right;white-space:nowrap}
-.hs-val.empty{color:var(--tx3);font-weight:400;font-size:12px}
+.hs-val{font-size:13px;font-weight:600;color:var(--g7);padding:0 10px;min-width:52px;text-align:right;white-space:nowrap;cursor:pointer}
+.hs-val.empty{color:var(--tx3);font-weight:400;font-size:12px;cursor:pointer}
+.hs-manual{display:none;padding:8px 12px;border-top:1px solid var(--bdr);align-items:center;gap:8px;background:#fff}
+.hs-manual.on{display:flex}
+.hs-manual input{width:90px;padding:7px 9px;border:1.5px solid var(--bdr);border-radius:7px;font-size:15px;background:var(--bg)}
+.hs-manual input:focus{outline:none;border-color:var(--g3)}
 
 /* ── MISC ── */
 .hidden{display:none!important}
@@ -709,31 +713,36 @@ function renderList() {
       const k = mk('hochsprung', selK, selG, s.anzeige);
       const bestVal = data[k];
       const has = bestVal!==undefined;
-      const att = (isHS ? hsCtx().attempts[s.anzeige] : null) || {fails:0,passed:false};
+      const att = hsCtx().attempts[s.anzeige] || {fails:0,passed:false};
       const isOut = att.fails>=3;
-      const allFail = att.fails>=3;
-      // X buttons state
+      // X buttons: always clickable so user can undo accidental 3x fail
       const xBtns = [0,1,2].map(j=>{
         const isFailed = j < att.fails;
-        const disabled = isOut ? 'disabled' : '';
-        return `<button class="hs-x ${isFailed?'fail':''}" id="hsx_${i}_${j}" ${disabled} onclick="hsToggleFail(${i},'${esc(s.anzeige)}',${j})">✕</button>`;
+        return `<button class="hs-x ${isFailed?'fail':''}" id="hsx_${i}_${j}" onclick="hsToggleFail(${i},'${esc(s.anzeige)}',${j})">✕</button>`;
       }).join('');
-      const checkDisabled = allFail ? 'disabled' : '';
+      const checkDisabled = isOut ? 'disabled' : '';
       const checkClass = att.passed ? 'pass' : '';
       return `
 <div class="hs-item ${has&&!isOut?'done':''} ${isOut?'out':''}" id="si${i}">
   <div class="hs-row">
     <div class="hs-info">
       <div class="hs-name">${esc(s.anzeige)}</div>
-      <div class="hs-meta">${esc(s.klasse)} · ${s.g==='m'?'Knabe':'Mädchen'}${isOut?' · <span style="color:#c0392b;font-weight:600">Ausgeschieden</span>':''}</div>
+      <div class="hs-meta">${esc(s.klasse)} · ${s.g==='m'?'Knabe':'Mädchen'}${isOut?' · <span style="color:#c0392b;font-weight:600">Ausgeschieden – X klicken zum Zurücksetzen</span>':''}</div>
     </div>
     <div class="hs-attempts">
       ${xBtns}
       <button class="hs-check ${checkClass}" id="hschk_${i}" ${checkDisabled} onclick="hsPass(${i},'${k}','${esc(s.anzeige)}')">✓</button>
     </div>
-    <div class="${has?'hs-val':'hs-val empty'}">
+    <div class="${has?'hs-val':'hs-val empty'}" onclick="hsToggleManual(${i})" title="Klicken für manuelle Eingabe">
       ${has?`${bestVal} cm`:'–'}
     </div>
+  </div>
+  <div class="hs-manual" id="hsm${i}">
+    <input type="number" id="hsn${i}" min="0" step="1" placeholder="cm" value="${has?bestVal:''}"
+      onkeydown="if(event.key==='Enter')hsCommitManual(${i},'${k}','${esc(s.anzeige)}')">
+    <span class="unit">cm</span>
+    <button class="btn btn-p" style="padding:7px 11px" onclick="hsCommitManual(${i},'${k}','${esc(s.anzeige)}')">OK</button>
+    ${has?`<button class="btn-del" onclick="hsDeleteManual(${i},'${k}','${esc(s.anzeige)}')">🗑</button>`:''}
   </div>
 </div>`;
     }
@@ -850,6 +859,39 @@ async function deleteVal(i, k, anzeige, isWS) {
     const posten = parts[0], js = parts[1], gruppe = parts[2];
     await sbReq(
       'messwerte?posten=eq.'+encodeURIComponent(posten)+'&klasse=eq.'+encodeURIComponent(js)+'&gruppe=eq.'+encodeURIComponent(gruppe)+'&name=eq.'+encodeURIComponent(anzeige),
+      { method:'DELETE' }
+    );
+    setSyncOk();
+  } catch(e){ setSyncErr(e.message); }
+  renderList();
+}
+
+function hsToggleManual(i) {
+  const el = document.getElementById('hsm'+i);
+  if(!el) return;
+  el.classList.toggle('on');
+  if(el.classList.contains('on')) {
+    const inp = document.getElementById('hsn'+i);
+    if(inp){ inp.focus(); inp.select(); }
+  }
+}
+
+function hsCommitManual(i, k, anzeige) {
+  const v = parseFloat(document.getElementById('hsn'+i).value);
+  if(isNaN(v)||v<=0) return;
+  data[k] = v;
+  saveVal('hochsprung', selK, selG, anzeige, v, null);
+  renderList();
+}
+
+async function hsDeleteManual(i, k, anzeige) {
+  if(!confirm('Wert von ' + anzeige + ' wirklich löschen?')) return;
+  delete data[k];
+  setSyncBusy();
+  try {
+    const parts = k.split('|');
+    await sbReq(
+      'messwerte?posten=eq.hochsprung&klasse=eq.'+encodeURIComponent(parts[1])+'&gruppe=eq.'+encodeURIComponent(parts[2])+'&name=eq.'+encodeURIComponent(anzeige),
       { method:'DELETE' }
     );
     setSyncOk();
@@ -1208,8 +1250,13 @@ function hsToggleFail(i, anzeige, j) {
   const att = hsCtx().attempts;
   if(!att[anzeige]) att[anzeige] = {fails:0, passed:false};
   const a = att[anzeige];
-  if(j < a.fails) { a.fails = j; }
-  else { a.fails = j + 1; }
+  // If clicking a red X that is the last one → remove it (undo last fail)
+  // If clicking a grey X → add fail up to that position
+  if(j < a.fails) {
+    a.fails = j; // remove from j onwards
+  } else {
+    a.fails = j + 1; // set fails to j+1
+  }
   a.passed = false;
   renderList();
 }
