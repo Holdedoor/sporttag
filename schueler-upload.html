@@ -200,6 +200,7 @@ function parseRows(rows) {
   const jsCol      = findCol(sample, ['jahrgangsstufe','jahrgang'], ['jahrgangsstufe','jahrgang','stufe']);
   const geschCol   = findCol(sample, ['geschlecht','gender'], ['geschlecht','gender','sex','m/w']);
   const gruppeCol  = findCol(sample, ['gruppe','group'], ['gruppe','group','grp']);
+  const nummerCol  = findCol(sample, ['nummer','number','nr','no'], ['nummer','number','nr']);
 
   if (!klasseCol) { alert('Spalte «Klasse» nicht gefunden.'); return; }
 
@@ -221,6 +222,7 @@ function parseRows(rows) {
       vorname: ersterVorname,
       name,
       anzeige,          // local only, not sent to DB
+      nummer: nummerCol ? String(r[nummerCol]||'').trim() : '',
       klasse,
       jahrgangsstufe: js,
       geschlecht: normalizeG(String(r[geschCol]||'')),

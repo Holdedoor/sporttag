@@ -582,12 +582,7 @@ function pickPosten(el, silent) {
   selP = el.dataset.v;
   swShow(selP==='schnellauf');
   const isHS = selP==='hochsprung';
-  if(isHS) {
-    // Sync height input with current klasse+gruppe context
-    const ctx = hsCtx();
-    const inp = document.getElementById('hs-inp');
-    if(inp) inp.value = ctx.height!==null ? ctx.height : '';
-  }
+  if(isHS) syncHsInp();
   document.getElementById('hs-bar').classList.toggle('on', isHS);
   if(!isHS){ /* hsState preserved per klasse/gruppe */ }
   // Show Untergruppe selector only for Ausdauerlauf
@@ -607,14 +602,25 @@ function pickGruppe(el, silent) {
   el.classList.add('on');
   selG = el.dataset.v;
   updateUGChips();
+  syncHsInp();
   if(!silent){ savesel(); renderList(); if(selP==='schnellauf'&&swStopped!==null) swBuildAssign(); }
 }
 function pickKlasse(el, silent) {
   document.querySelectorAll('#klasse-chips .chip').forEach(c=>c.classList.remove('on'));
   el.classList.add('on');
   selK = el.dataset.v;
+  syncHsInp();
   if(!silent){ savesel(); renderList(); if(selP==='schnellauf'&&swStopped!==null) swBuildAssign(); }
 }
+// Sync hs-inp field with current context (called on klasse/gruppe change)
+function syncHsInp() {
+  if(selP!=='hochsprung') return;
+  const inp = document.getElementById('hs-inp');
+  if(!inp) return;
+  const ctx = hsCtx();
+  inp.value = ctx.height!==null ? ctx.height : '';
+}
+
 // UG colour names: same for both groups
 const UG_NAMES = { '1':'🔴 Rot', '2':'🟡 Gelb', '3':'🔵 Blau', '4':'🟢 Grün' };
 function ugName(gruppe, ug) { return UG_NAMES[ug] || ('Gruppe '+ug); }
@@ -691,7 +697,7 @@ function renderList() {
       return `
 <div class="counter-item ${has?'done':''}" id="si${i}">
   <div class="counter-info">
-    <div class="counter-name">${esc(s.anzeige)}</div>
+    <div class="counter-name">${numBadge(s.nummer)}${esc(s.anzeige)}</div>
     <div class="counter-meta">${esc(s.klasse)} · ${s.g==='m'?'Knabe':'Mädchen'} · ${ugName(selG, selUG)}</div>
   </div>
   <div class="counter-ctrl">
@@ -725,7 +731,7 @@ function renderList() {
 <div class="hs-item ${has&&!isOut?'done':''} ${isOut?'out':''}" id="si${i}">
   <div class="hs-row">
     <div class="hs-info">
-      <div class="hs-name">${esc(s.anzeige)}</div>
+      <div class="hs-name">${numBadge(s.nummer)}${esc(s.anzeige)}</div>
       <div class="hs-meta">${esc(s.klasse)} · ${s.g==='m'?'Knabe':'Mädchen'}${isOut?' · <span style="color:#c0392b;font-weight:600">Ausgeschieden – X klicken zum Zurücksetzen</span>':''}</div>
     </div>
     <div class="hs-attempts">
@@ -752,7 +758,7 @@ function renderList() {
       const jv = [0,1,2].map(j=>jumps[j]!==null&&jumps[j]!==undefined?jumps[j]:'');
       return `
 <div class="sus-item ${hasDone?'done':''}" id="si${i}" onclick="toggleInput(${i})">
-  <div><div class="sus-name">${esc(s.anzeige)}</div><div class="sus-meta">${esc(s.klasse)} · ${s.g==='m'?'Knabe':'Mädchen'}</div></div>
+  <div><div class="sus-name">${numBadge(s.nummer)}${esc(s.anzeige)}</div><div class="sus-meta">${esc(s.klasse)} · ${s.g==='m'?'Knabe':'Mädchen'}</div></div>
   <div class="${hasDone?'sus-val':'sus-val empty'}" id="sv${i}">
     ${hasDone?`${best} <span style="font-size:11px;font-weight:400;color:var(--tx3)">cm</span>`:'–'}
   </div>
@@ -779,7 +785,7 @@ function renderList() {
       const has = val!==undefined;
       return `
 <div class="sus-item ${has?'done':''}" id="si${i}" onclick="toggleInput(${i})">
-  <div><div class="sus-name">${esc(s.anzeige)}</div><div class="sus-meta">${esc(s.klasse)} · ${s.g==='m'?'Knabe':'Mädchen'}</div></div>
+  <div><div class="sus-name">${numBadge(s.nummer)}${esc(s.anzeige)}</div><div class="sus-meta">${esc(s.klasse)} · ${s.g==='m'?'Knabe':'Mädchen'}</div></div>
   <div class="${has?'sus-val':'sus-val empty'}" id="sv${i}">
     ${has?`${val} <span style="font-size:11px;font-weight:400;color:var(--tx3)">${pInfo.unit}</span>`:'–'}
   </div>
@@ -886,6 +892,9 @@ function hsCommitManual(i, k, anzeige) {
 async function hsDeleteManual(i, k, anzeige) {
   if(!confirm('Wert von ' + anzeige + ' wirklich löschen?')) return;
   delete data[k];
+  // Reset attempts for this kid so buttons go back to default
+  const ctx = hsCtx();
+  if(ctx.attempts[anzeige]) ctx.attempts[anzeige] = {fails:0, passed:false};
   setSyncBusy();
   try {
     const parts = k.split('|');
@@ -1354,7 +1363,7 @@ function swBuildAssign() {
     const existing = data[k];
     const hasDone = existing !== undefined;
     return `<div class="sw-kid ${hasDone?'assigned':''}" onclick="swAssign('${k}','${esc(s.anzeige)}')">
-      <span class="sw-kid-name">${esc(s.anzeige)}</span>
+      <span class="sw-kid-name">${numBadge(s.nummer)}${esc(s.anzeige)}</span>
       <span class="sw-kid-val">${hasDone ? existing+' s ✓' : '→ zuteilen'}</span>
     </div>`;
   }).join('');
