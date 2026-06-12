@@ -194,7 +194,7 @@ body{font-family:system-ui,-apple-system,sans-serif;background:var(--bg);color:v
 .hs-x.fail{background:#fde8e8;color:#c0392b}
 .hs-x:disabled{opacity:.3;cursor:not-allowed}
 .hs-check{width:38px;height:44px;border:none;border-radius:6px;font-size:18px;cursor:pointer;transition:all .14s;background:var(--bg);color:var(--tx3);display:flex;align-items:center;justify-content:center;border-left:1px solid var(--bdr)}
-.hs-check.pass{background:#d8f3dc;color:var(--g7)}
+.hs-check.pass{background:#2D6A4F;color:#fff}
 .hs-check:disabled{opacity:.3;cursor:not-allowed}
 .hs-val{font-size:13px;font-weight:600;color:var(--g7);padding:0 10px;min-width:52px;text-align:right;white-space:nowrap;cursor:pointer}
 .hs-val.empty{color:var(--tx3);font-weight:400;font-size:12px;cursor:pointer}
@@ -583,11 +583,10 @@ function pickPosten(el, silent) {
   swShow(selP==='schnellauf');
   const isHS = selP==='hochsprung';
   if(isHS) {
-    // Sync height input with current context
+    // Sync height input with current klasse+gruppe context
     const ctx = hsCtx();
     const inp = document.getElementById('hs-inp');
-    if(inp && ctx.height!==null) inp.value = ctx.height;
-    else if(inp && ctx.height===null) inp.value = '';
+    if(inp) inp.value = ctx.height!==null ? ctx.height : '';
   }
   document.getElementById('hs-bar').classList.toggle('on', isHS);
   if(!isHS){ /* hsState preserved per klasse/gruppe */ }
@@ -1247,15 +1246,19 @@ function hsResetAll() {
 }
 
 function hsToggleFail(i, anzeige, j) {
-  const att = hsCtx().attempts;
+  // Only allow adding a new fail if height is set
+  const ctx = hsCtx();
+  if(!ctx.height && j >= (ctx.attempts[anzeige]?.fails||0)) {
+    alert('Bitte zuerst eine Höhe eingeben.');
+    return;
+  }
+  const att = ctx.attempts;
   if(!att[anzeige]) att[anzeige] = {fails:0, passed:false};
   const a = att[anzeige];
-  // If clicking a red X that is the last one → remove it (undo last fail)
-  // If clicking a grey X → add fail up to that position
   if(j < a.fails) {
-    a.fails = j; // remove from j onwards
+    a.fails = j;
   } else {
-    a.fails = j + 1; // set fails to j+1
+    a.fails = j + 1;
   }
   a.passed = false;
   renderList();
@@ -1263,14 +1266,18 @@ function hsToggleFail(i, anzeige, j) {
 
 function hsPass(i, k, anzeige) {
   const ctx = hsCtx();
-  if(!ctx.height) { alert('Bitte zuerst eine Höhe eingeben.'); return; }
+  if(!ctx.height) { alert('Bitte zuerst eine aktuelle Höhe oben eingeben.'); return; }
   if(!ctx.attempts[anzeige]) ctx.attempts[anzeige] = {fails:0, passed:false};
   const a = ctx.attempts[anzeige];
   if(a.fails >= 3) return;
   a.passed = true;
   a.fails = 0;
-  data[k] = ctx.height;
-  saveVal('hochsprung', selK, selG, anzeige, ctx.height, null);
+  // Only update if new height is greater than current best
+  const existing = data[k];
+  if(existing===undefined || ctx.height > existing) {
+    data[k] = ctx.height;
+    saveVal('hochsprung', selK, selG, anzeige, ctx.height, null);
+  }
   renderList();
 }
 
